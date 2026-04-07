@@ -31,18 +31,21 @@ Use `[[page-name]]` for cross-references. Always link to the canonical page name
 ## Page Types
 
 ### `concepts/`
+
 - Definition in one paragraph
 - Key properties / variants
 - Related concepts (wikilinks)
 - Sources
 
 ### `entities/`
+
 - Who/what it is (one paragraph)
 - Why it matters to this wiki
 - Key works, products, or contributions
 - Related entities and concepts
 
 ### `projects/`
+
 - Status: `active | paused | done | abandoned`
 - Goal (one sentence)
 - Key decisions and why
@@ -50,6 +53,7 @@ Use `[[page-name]]` for cross-references. Always link to the canonical page name
 - Next actions
 
 ### `business/`
+
 - Problem being solved
 - Target customer
 - Rough business model
@@ -57,6 +61,7 @@ Use `[[page-name]]` for cross-references. Always link to the canonical page name
 - Open questions / risks
 
 ### `ideas/`
+
 - The raw idea (one paragraph)
 - Why it might be valuable
 - What would need to be true for it to work
@@ -76,6 +81,7 @@ When processing a new source, instruct the LLM to:
 ## Lint Protocol
 
 Periodically ask the LLM to:
+
 - Flag contradictions between pages
 - Find orphan pages (nothing links to them)
 - Identify stale claims (marked with `[stale?]` tag)
