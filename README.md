@@ -1,4 +1,4 @@
-# Wiki
+# second brain
 
 Personal knowledge base for research, projects, ideas, and business.
 Inspired by [karpathy's LLM wiki system](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
