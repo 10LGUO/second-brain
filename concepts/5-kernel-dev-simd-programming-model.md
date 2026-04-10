@@ -23,7 +23,7 @@ SIMD (Single Instruction Multiple Data) is a parallel programming model in which
 ## Contrast with SIMT
 
 | Dimension | SIMD | SIMT |
-|---|---|---|
+| --- | --- | --- |
 | Data flow | Must write explicitly | Not required |
 | Data alignment | Required | Not required |
 | Compute mode | Vector (multiple data per instruction) | Scalar |
@@ -33,7 +33,7 @@ SIMD (Single Instruction Multiple Data) is a parallel programming model in which
 ## AVX-512 Intrinsics (Common)
 
 | Intrinsic | Description |
-|---|---|
+| --- | --- |
 | `__m512` | 512-bit SIMD register type (holds 16 floats) |
 | `_mm512_setzero_ps()` | Zero-initialize a 512-bit register |
 | `_mm512_load_ps(ptr)` | Load 16 floats from aligned memory |

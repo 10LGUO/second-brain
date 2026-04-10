@@ -1,16 +1,15 @@
-```markdown
----
+```yaml
 title: SIMT Programming Model
 type: concept
 tags: [simt, gpu, cuda, kernel-development, parallelism]
 created: 2026-04-06
-updated: 2026-04-06
+updated: 2026-04-07
 sources: [5-kernel-dev.md]
----
+```
 
 # SIMT Programming Model
 
-SIMT (Single Instruction Multiple Threads) is the programming model underlying GPU computation, most prominently exposed through NVIDIA's CUDA framework. In SIMT, a single instruction is applied concurrently across many threads, each operating on its own data element (scalar). This abstracts away explicit data movement and vector width management from the programmer.
+Single Instruction, Multiple Threads (SIMT) is the programming model underlying GPU computation, most prominently exposed through NVIDIA's CUDA framework. In SIMT, a single instruction is applied concurrently across many threads, each operating on its own data element (scalar). This abstracts away explicit data movement and vector width management from the programmer.
 
 ## Key Properties
 
@@ -18,25 +17,32 @@ SIMT (Single Instruction Multiple Threads) is the programming model underlying G
 - **Scalar compute:** Each thread performs scalar arithmetic (add, multiply, transcendental functions, etc.); the hardware handles the parallelism.
 - **No data alignment requirement:** Threads access arbitrary indices; alignment is not a programmer concern.
 - **No manual ping-pong buffering:** The hardware and compiler manage latency hiding; shared memory double buffering can be used for advanced optimization but is not required for correctness.
-- **Simpler programming model:** Compared to SIMD, writing kernels is less verbose.
+- **Simpler programming model:** Compared to Single Instruction, Multiple Data (SIMD), writing kernels is less verbose.
+
+## Hardware Execution: Warps
+
+The hardware implementation of SIMT is the **[[warp]]** — a group of 32 threads that are always scheduled and executed together. The programmer writes scalar code per thread; the GPU groups 32 threads into a warp and issues one instruction to all 32 simultaneously. Memory accesses from all 32 threads are coalesced into as few 128-byte transactions as possible — this is why vectorized access (`float4`) improves bandwidth utilization.
 
 ## Representative Hardware
+
 - NVIDIA GPUs (via CUDA)
 - AMD GPUs (via ROCm/HIP)
 
 ## Contrast with SIMD
+
 See [[simd-programming-model]] for a detailed comparison table.
 
 ## Special Function Units (SFU)
+
 GPUs contain dedicated Special Function Units (SFUs) for transcendental functions (sin, cos, exp). These are separate from the main CUDA cores (1D compute) and matrix units (2D compute), and their utilization must be accounted for separately when estimating compute utilization.
 
 ## Related Concepts
+
 - [[simd-programming-model]]
+- [[warp]]
 - [[arithmetic-intensity]]
 - [[ping-pong-buffer]]
 
 ## Sources
-- [[5-kernel-dev]]
-```
 
----
+- [[5-kernel-dev]]

@@ -13,16 +13,18 @@ Conventions and rules for maintaining this wiki.
 
 Every page should start with:
 
+~~~text
 ```yaml
----
 title: Page Title
 type: concept | entity | project | business | idea | source
 tags: [tag1, tag2]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 sources: [source-filename.md]
----
 ```
+~~~text
+
+Note: frontmatter uses ` ```yaml ` / ` ``` ` fences — **not** `---` YAML delimiters.
 
 ## Wikilinks
 
@@ -88,3 +90,9 @@ Periodically ask the LLM to:
 - Check all wikilinks resolve
 
 Log the lint: `## [YYYY-MM-DD] lint | <brief findings>`
+
+## Log Conventions
+
+- Operations: `ingest`, `query`, `lint`, `create`, `update`
+- Add `[Code Change]` tag for changes to wiki infrastructure (ingest.py, schema.md, .markdownlint.json, lint.md) rather than knowledge content
+- Example: `## [2026-04-06] [Code Change] create | lint.md — reusable health-check prompt`

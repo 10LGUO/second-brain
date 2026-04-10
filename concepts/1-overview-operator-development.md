@@ -1,11 +1,11 @@
----
+```yaml
 title: Operator Development
 type: concept
 tags: [operator, gpu, kernel, ai-infra, performance-optimization, cuda]
 created: 2026-04-05
 updated: 2026-04-06
 sources: [1-overview.md]
----
+```
 
 # Operator Development
 

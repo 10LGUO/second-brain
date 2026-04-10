@@ -1,11 +1,11 @@
----
+```yaml
 title: GPU Software Stack
 type: concept
 tags: [gpu, software-stack, cuda, driver, compiler, ptx, sass, runtime, libraries]
 created: 2026-04-05
 updated: 2026-04-05
 sources: [1-overview.md]
----
+```
 
 # GPU Software Stack
 

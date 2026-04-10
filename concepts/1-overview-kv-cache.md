@@ -1,11 +1,11 @@
----
+```yaml
 title: KV Cache
 type: concept
 tags: [llm-infra, inference, attention, memory, optimization]
 created: 2026-04-05
 updated: 2026-04-05
 sources: [1-overview.md]
----
+```
 
 # KV Cache
 

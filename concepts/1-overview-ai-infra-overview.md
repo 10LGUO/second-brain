@@ -1,11 +1,11 @@
----
+```yaml
 title: AI Infra General Overview
 type: concept
 tags: [ai-infra, llm, training, inference, distributed-systems, optimization]
 created: 2026-04-05
 updated: 2026-04-05
 sources: [1-overview.md]
----
+```
 
 # AI Infra General Overview
 

@@ -2,3 +2,5 @@
 *.pdf
 *.zip
 *.tar.gz
+.obsidian/
+.claude/
