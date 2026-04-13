@@ -51,3 +51,7 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-13] update | concepts/5-kernel-dev-reduce-operator.md — CUDA GPU reduction section: shared memory tree (v1), warp shuffle (v2), float4+shuffle (v3), laneId, __shfl_down_sync, warpSize
 ## [2026-04-13] update | concepts/5-kernel-dev-softmax.md — rewrote page: three-kernel pipeline, numerical stability example, atomicMax CAS explanation, CUDA function qualifiers table
 ## [2026-04-13] update | concepts/warp.md — added lanes section (laneId, warpSize), warp shuffle instructions (__shfl_down_sync), cross-warp coordination pattern
+
+## [2026-04-13] query | Matrix transpose — coalescing at warp level, threadIdx.x vs threadIdx.y layout, __ldg (Load Global) read-only texture cache
+## [2026-04-13] update | concepts/warp.md — expanded memory coalescing section: warp-level transaction batching, thread layout within block, __ldg explanation
+## [2026-04-13] create | concepts/cuda-transpose.md — naive vs coalesced-write transpose, why writes prioritized, __ldg tradeoff

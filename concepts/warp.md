@@ -24,13 +24,57 @@ Single Instruction, Multiple Threads (SIMT) is the *programming model* — you w
 
 ## Memory Coalescing
 
-The warp size directly determines memory access efficiency. When 32 threads in a warp each access memory, the hardware tries to merge (coalesce) those accesses into as few 128-byte transactions as possible:
+Memory transactions are issued at the **warp level**, not the thread level. When a warp executes a load/store instruction, the hardware looks at all 32 threads' addresses simultaneously and merges them into as few 128-byte HBM transactions as possible.
+
+Each thread operates on its own data — but whether those 32 accesses cost 1 transaction or 32 depends entirely on whether the addresses are contiguous.
+
+**Coalesced (contiguous addresses):**
+```text
+thread 0 → address 100
+thread 1 → address 104
+thread 2 → address 108  ...  thread 31 → address 224
+
+→ one 128-byte transaction covers all 32 floats ✓
+```
+
+**Non-coalesced (strided addresses):**
+```text
+thread 0 → address 100
+thread 1 → address 100 + N×4   (next row, far away)
+thread 2 → address 100 + 2N×4  ...
+
+→ up to 32 separate transactions, each fetching 128 bytes but using only 4 ✗
+→ 32× more HBM traffic than necessary
+```
 
 | Access pattern | Transactions | Effective bandwidth |
 | --- | --- | --- |
 | 32 threads × `float` (4B), contiguous | 1 × 128B transaction | Full |
 | 32 threads × `float4` (16B), contiguous | 4 × 128B transactions | Full (4× data per instruction) |
 | 32 threads, strided or random | Up to 32 transactions | Severely degraded |
+
+### Thread Layout Within a Block
+
+CUDA threads are laid out in **row-major order** — `threadIdx.x` varies fastest. A warp is always 32 consecutive threads by linear index, which means all 32 threads in a warp share the same `threadIdx.y` and differ only in `threadIdx.x`.
+
+```text
+4×4 block (x=col, y=row):
+(y=0,x=0) (y=0,x=1) (y=0,x=2) (y=0,x=3)  ← warp 0: same y, consecutive x
+(y=1,x=0) (y=1,x=1) (y=1,x=2) (y=1,x=3)  ← warp 1
+```
+
+Consequence: indexing by `threadIdx.x` (column) produces coalesced access; indexing by `threadIdx.y` (row) produces strided access.
+
+### `__ldg` — Load Global (Read-Only Cache)
+
+`__ldg(&ptr)` routes a global memory load through the **read-only texture cache** instead of the regular L1. The texture cache is designed for spatial locality in 2D — it caches regions around the accessed address in both dimensions, making it better suited to strided access patterns.
+
+```cuda
+output[row * M + col] = __ldg(&input[col * N + row]);
+//     coalesced write ✓        strided read — softened by texture cache
+```
+
+`__ldg` does not fix non-coalescing — it reduces the penalty by hitting cache more often for irregular access. Maps directly to the PTX `LDG` (Load Global) instruction.
 
 Vectorized memory access (`float4`, `float2`) increases bytes moved per instruction without increasing transaction count, directly improving bandwidth utilization toward the hardware ceiling.
 
