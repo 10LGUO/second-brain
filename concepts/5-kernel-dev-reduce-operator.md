@@ -158,6 +158,97 @@ float reduce_kahan(const float* data, int n) {
 
 ---
 
+---
+
+## CUDA GPU Reduction (Progressive Implementations)
+
+GPU reduction follows the same tree structure but exploits the thread hierarchy. Each version builds on the previous.
+
+### v1: Shared Memory Tree Reduction
+
+Each block loads its chunk into on-chip shared memory, then performs a tree reduction. Only thread 0 writes the block's partial sum.
+
+```cuda
+__global__ void reduce_v1(float* input, float* output, int N) {
+    __shared__ float s[BLOCK_SIZE];  // on-chip, block-scoped
+    int tid = threadIdx.x;
+    int n   = blockDim.x * blockIdx.x + tid;
+
+    s[tid] = (n < N) ? input[n] : 0.0f;  // load HBM → shared mem
+    __syncthreads();  // wait for all threads in block to load
+
+    for (int offset = blockDim.x >> 1; offset > 0; offset >>= 1) {
+        if (tid < offset) s[tid] += s[tid + offset];
+        __syncthreads();  // sync after each round
+    }
+    if (tid == 0) atomicAdd(output, s[0]);  // accumulate across blocks
+}
+```
+
+Each element is read from HBM exactly once; all `log2(BLOCK_SIZE)` reduction rounds use shared memory (~100× faster than HBM). `atomicAdd` handles the cross-block race.
+
+### v2: Warp Shuffle Reduction
+
+Replaces shared memory for intra-warp reduction with `__shfl_down_sync` — values are passed directly between thread registers. Only one `__syncthreads()` is needed (between Phase 1 and Phase 2), versus `log2(BLOCK_SIZE)` in v1.
+
+```cuda
+__global__ void reduce_v2(float* input, float* output, int N) {
+    __shared__ float s_y[32];  // one slot per warp (max 1024/32 = 32 warps)
+
+    int idx    = blockDim.x * blockIdx.x + threadIdx.x;
+    int warpId = threadIdx.x / warpSize;   // which warp within this block
+    int laneId = threadIdx.x % warpSize;   // position within the warp (0–31)
+
+    float val = (idx < N) ? input[idx] : 0.0f;
+
+    // Phase 1: intra-warp reduction via shuffle — no __syncthreads() needed (lockstep)
+    for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
+        val += __shfl_down_sync(0xFFFFFFFF, val, offset);  // lane i += lane i+offset
+
+    // Lane 0 of each warp writes its partial sum to shared memory
+    if (laneId == 0) s_y[warpId] = val;
+    __syncthreads();  // only sync point: wait for all warps to write
+
+    // Phase 2: warp 0 reduces the per-warp partial sums
+    if (warpId == 0) {
+        int warpNum = blockDim.x / warpSize;  // number of warps in this block
+        val = (laneId < warpNum) ? s_y[laneId] : 0.0f;
+        for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
+            val += __shfl_down_sync(0xFFFFFFFF, val, offset);
+        if (laneId == 0) atomicAdd(output, val);
+    }
+}
+```
+
+**Why no sync within warp?** All 32 threads in a warp execute in lockstep — same instruction, same clock cycle. By the time the next line runs, every lane's shuffle is already done.
+
+**`__shfl_down_sync(mask, val, offset)`**: lane `i` receives `val` from lane `i + offset`. Strictly intra-warp — cannot cross warp boundaries. `s_y` is the bridge between warps.
+
+**`warpSize`**: a built-in read-only constant, always 32 on all current NVIDIA hardware.
+
+**`laneId` vs `threadIdx.x`**: lane 0 of warp 1 has `threadIdx.x = 32`, not 0. `laneId = threadIdx.x % warpSize` gives the correct intra-warp position for checks like `if (laneId == 0)`.
+
+### v3: Warp Shuffle + float4
+
+Combines v2 with `float4` vectorized loads — each thread processes 4 elements per 128-bit LDG.128 instruction, reducing HBM transactions 4×. Grid size is divided by 4 accordingly.
+
+```cuda
+int idx = (blockDim.x * blockIdx.x + threadIdx.x) * 4;
+float4 tmp = FLOAT4(input[idx]);
+val += tmp.x + tmp.y + tmp.z + tmp.w;
+// ... same warp shuffle reduction as v2
+```
+
+### Performance Comparison
+
+| Version | Sync calls per block | Shared mem writes | HBM loads per element |
+| --- | --- | --- | --- |
+| v1 (shared mem tree) | `log2(BLOCK_SIZE)` | `log2(BLOCK_SIZE)` × all threads | 1 |
+| v2 (warp shuffle) | 1 | 1 per warp | 1 |
+| v3 (shuffle + float4) | 1 | 1 per warp | 0.25 (4 per transaction) |
+
+---
+
 ## Related Concepts
 
 - [[simd-vectorization]]

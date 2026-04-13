@@ -41,3 +41,13 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-07] update | concepts/5-kernel-dev-simt-programming-model.md — added Warp section, fixed frontmatter
 
 ## [2026-04-07] lint | Completed 12 truncated concept/entity/source pages; deleted 18 empty stubs and superseded duplicates; fixed all remaining lint errors
+
+## [2026-04-10] query | CUDA kernel anatomy (add.cu) — grid/block/thread hierarchy, host-device memory, float4, FLOAT4 macro, CEIL, bounds check
+## [2026-04-10] create | concepts/cuda-thread-hierarchy.md, concepts/cuda-host-device-memory.md
+
+## [2026-04-13] query | CUDA reduction kernels (sum.cu) — shared memory tree reduction, warp shuffle reduction, inter-block communication, atomicAdd, atomicMax via CAS loop
+## [2026-04-13] query | Softmax CUDA kernel pipeline — three-pass design (max→sum→normalize), numerical stability, __global__/__device__/static qualifiers
+## [2026-04-13] update | concepts/cuda-thread-hierarchy.md — inter-block communication section (atomics, two-kernel pattern, Cooperative Groups)
+## [2026-04-13] update | concepts/5-kernel-dev-reduce-operator.md — CUDA GPU reduction section: shared memory tree (v1), warp shuffle (v2), float4+shuffle (v3), laneId, __shfl_down_sync, warpSize
+## [2026-04-13] update | concepts/5-kernel-dev-softmax.md — rewrote page: three-kernel pipeline, numerical stability example, atomicMax CAS explanation, CUDA function qualifiers table
+## [2026-04-13] update | concepts/warp.md — added lanes section (laneId, warpSize), warp shuffle instructions (__shfl_down_sync), cross-warp coordination pattern

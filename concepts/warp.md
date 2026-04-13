@@ -48,6 +48,38 @@ Vectorized memory access (`float4`, `float2`) increases bytes moved per instruct
 
 The rule: **choose the vector type that gives exactly 128 bits per thread**. For `fp16` (half-precision, 16 bits each) data the right type is `half8` (8 × 16 bits = 128 bits), not `float4`. Always match vector width to data type so one instruction moves the full 128 bits.
 
+## Lanes
+
+Each of the 32 threads in a warp occupies a **lane** (0–31). The term comes from the SIMT hardware model — a warp executes one instruction across 32 parallel lanes simultaneously, like a 32-lane highway.
+
+```cuda
+int laneId = threadIdx.x % warpSize;   // position within the warp (0–31)
+int warpId = threadIdx.x / warpSize;   // which warp within the block
+```
+
+`laneId` is more precise than `threadIdx.x` for intra-warp operations: lane 0 of warp 1 has `threadIdx.x = 32`, not 0. Using `laneId` gives the correct intra-warp position for checks like `if (laneId == 0)`.
+
+`warpSize` is a built-in read-only constant available in any `__global__` or `__device__` function, always equal to 32.
+
+## Warp Shuffle Instructions
+
+Because all 32 threads in a warp execute in lockstep, values can be passed directly between lanes through registers — no shared memory, no `__syncthreads()` needed.
+
+**`__shfl_down_sync(mask, val, offset)`**: lane `i` receives `val` from lane `i + offset`.
+
+```cuda
+// Example: warp sum reduction
+for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
+    val += __shfl_down_sync(0xFFFFFFFF, val, offset);
+// After log2(32)=5 rounds, lane 0 holds the sum of all 32 lanes
+```
+
+- `mask = 0xFFFFFFFF` — all 32 lanes participate
+- Strictly intra-warp — cannot cross warp boundaries
+- Lanes where `lane + offset > 31` receive their own value back (undefined but irrelevant — upper lanes are discarded as the tree converges)
+
+For cross-warp coordination, shared memory is the only option: lane 0 of each warp writes to `s_y[warpId]`, then warp 0 reads all entries after `__syncthreads()`.
+
 ## Warp Divergence
 
 If threads within a warp take different branches (`if`/`else`), the warp executes both paths serially with inactive threads masked — this is **warp divergence** and reduces effective parallelism. Minimizing divergence is a key kernel optimization concern.
@@ -59,6 +91,8 @@ If threads within a warp take different branches (`if`/`else`), the warp execute
 ## Related Concepts
 
 - [[simt-programming-model]]
+- [[cuda-thread-hierarchy]]
+- [[cuda-host-device-memory]]
 - [[arithmetic-intensity]]
 - [[5-kernel-dev-ping-pong-buffer]]
 - [[operator-development]]
