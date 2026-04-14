@@ -44,17 +44,32 @@ Understanding this hierarchy is central to writing efficient kernels: the goal i
 
 GPUs execute code through a hierarchical threading model:
 
-- **Grid:** The top-level collection of all thread blocks launched by a kernel invocation.
-- **Thread Block (CTA — Cooperative Thread Array):** A group of threads (up to 1024) that are co-scheduled on the same SM and can communicate via shared memory and synchronize via `__syncthreads()`.
-- **Warp:** The fundamental unit of GPU execution. A group of 32 threads that execute in lockstep (SIMT — Single Instruction Multiple Threads). Divergent control flow within a warp causes serialization.
-- **Thread:** The individual execution unit. Each thread has its own registers and a unique thread ID used to index data.
+- **Grid:** The top-level software concept — the set of all thread blocks in one kernel launch. A grid is mapped onto the physical SM pool by the hardware scheduler. Grid and SM are **not** one-to-one: a typical grid has thousands of blocks; an A100 has 108 SMs. The scheduler distributes blocks across SMs as they become free, in any order.
+- **Thread Block (CTA — Cooperative Thread Array):** A group of threads (up to 1024) assigned to one SM. One block runs on one SM, but one SM can hold multiple blocks simultaneously (constrained by shared memory and register budgets). Threads within a block share on-chip shared memory (SRAM) and can synchronize via `__syncthreads()`. Blocks cannot communicate with each other directly — they may run on different SMs or at different times.
+- **Warp:** The fundamental unit of GPU execution. A group of 32 threads that execute in lockstep (Single Instruction, Multiple Threads (SIMT)). Warps belong to blocks. The SM warp scheduler switches between warps each cycle to hide memory latency — when one warp stalls on an HBM load (~300–500 cycles), another ready warp runs instead. Fewer blocks on an SM means fewer warps, which reduces the scheduler's ability to hide latency.
+- **Lane:** The position of a thread within its warp (0–31). `laneId = threadIdx.x % warpSize`. Used for warp-level operations like shuffle instructions.
+- **Thread:** The individual execution unit. Each thread owns its own registers and computes a unique index into the data. The thread ID in a 2D block maps to a flat linear index as: `linear = threadIdx.y * blockDim.x + threadIdx.x` (x varies fastest).
+
+### Thread Layout and Memory Coalescing
+
+CUDA threads are laid out row-major — `threadIdx.x` varies fastest. A warp is 32 consecutive threads by linear index, meaning all threads in a warp share the same `threadIdx.y` and differ only in `threadIdx.x`.
+
+Memory transactions are issued at the **warp level**: when a warp executes a load/store, the hardware looks at all 32 addresses and merges them into as few 128-byte HBM transactions as possible (**coalescing**). Accesses via `threadIdx.x` (column) are coalesced; accesses via `threadIdx.y` (row) are strided and cause up to 32 separate transactions — 32× bandwidth waste.
+
+### Shared Memory (SRAM) and Bank Conflicts
+
+Shared memory is on-chip SRAM on the SM, ~100× lower latency than HBM. It is scoped to a block — all threads in the block share it; other blocks cannot see it. It must be allocated before kernel execution (either statically via compile-time constants/templates, or dynamically via `extern __shared__` with size passed as the third launch argument) so the hardware can determine how many blocks fit on each SM.
+
+Shared memory is divided into **32 banks** (one per lane). Bank assignment cycles by 4-byte word: word 0 → bank 0, word 1 → bank 1, ..., word 31 → bank 31, word 32 → bank 0 again. When multiple threads in a warp access different addresses in the **same bank**, accesses serialize — this is a **bank conflict**.
+
+Common case: reading a column of a 2D shared memory array. In a 32-wide array, column elements are 32 words apart → all map to the same bank → 32-way conflict. Fix: add 1 column of padding (`s_mem[N][M+1]`) to shift each row by one word, spreading column accesses across different banks.
 
 ### Occupancy
 
-Occupancy is the ratio of active warps on an SM to the maximum possible warps. Higher occupancy helps hide memory latency through warp switching. Occupancy is limited by:
+Occupancy is the ratio of active warps on an SM to the maximum possible warps. Higher occupancy gives the scheduler more warps to switch between when one stalls, hiding memory latency. Occupancy is limited by:
 
 - Register usage per thread (register file is finite per SM)
-- Shared memory usage per block
+- Shared memory usage per block (more shared memory → fewer blocks fit → fewer warps on SM)
 - Thread block size
 
 Achieving high occupancy is often necessary but not sufficient for peak performance; arithmetic intensity and memory access patterns matter equally.

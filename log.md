@@ -55,3 +55,7 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-13] query | Matrix transpose — coalescing at warp level, threadIdx.x vs threadIdx.y layout, __ldg (Load Global) read-only texture cache
 ## [2026-04-13] update | concepts/warp.md — expanded memory coalescing section: warp-level transaction batching, thread layout within block, __ldg explanation
 ## [2026-04-13] create | concepts/cuda-transpose.md — naive vs coalesced-write transpose, why writes prioritized, __ldg tradeoff
+
+## [2026-04-14] query | Shared memory tiling transpose — bank conflicts, padding, dim3, static vs dynamic shared memory, grid-SM many-to-many mapping, 2D thread linear index
+## [2026-04-14] update | concepts/1-overview-gpu-software-hardware-architecture.md — expanded execution model: grid-SM mapping, lane definition, thread layout/coalescing, shared memory SRAM/bank conflicts with examples
+## [2026-04-14] update | concepts/cuda-transpose.md — added shared memory tiling section with bank conflict/padding explanation, dim3, template parameter rationale
