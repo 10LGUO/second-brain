@@ -59,3 +59,6 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-14] query | Shared memory tiling transpose — bank conflicts, padding, dim3, static vs dynamic shared memory, grid-SM many-to-many mapping, 2D thread linear index
 ## [2026-04-14] update | concepts/1-overview-gpu-software-hardware-architecture.md — expanded execution model: grid-SM mapping, lane definition, thread layout/coalescing, shared memory SRAM/bank conflicts with examples
 ## [2026-04-14] update | concepts/cuda-transpose.md — added shared memory tiling section with bank conflict/padding explanation, dim3, template parameter rationale
+
+## [2026-04-15] query | Bank structure — banks are internal physical subdivisions of SM's shared memory pool; blocks share the same 32 banks at different address ranges
+## [2026-04-15] update | concepts/1-overview-gpu-software-hardware-architecture.md — clarified SM/shared memory/bank/block relationship with diagram

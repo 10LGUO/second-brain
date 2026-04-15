@@ -58,9 +58,19 @@ Memory transactions are issued at the **warp level**: when a warp executes a loa
 
 ### Shared Memory (SRAM) and Bank Conflicts
 
-Shared memory is on-chip SRAM on the SM, ~100× lower latency than HBM. It is scoped to a block — all threads in the block share it; other blocks cannot see it. It must be allocated before kernel execution (either statically via compile-time constants/templates, or dynamically via `extern __shared__` with size passed as the third launch argument) so the hardware can determine how many blocks fit on each SM.
+Shared memory is on-chip SRAM on the SM, ~100× lower latency than HBM. Each SM has one shared memory pool, physically partitioned into **32 banks**. Blocks assigned to that SM each carve out a portion of this pool — they don't get separate banks, they all use the same 32-bank physical memory at different address ranges.
 
-Shared memory is divided into **32 banks** (one per lane). Bank assignment cycles by 4-byte word: word 0 → bank 0, word 1 → bank 1, ..., word 31 → bank 31, word 32 → bank 0 again. When multiple threads in a warp access different addresses in the **same bank**, accesses serialize — this is a **bank conflict**.
+```text
+SM
+├── Shared Memory SRAM (one pool, internally: 32 banks)
+└── Blocks assigned to this SM
+    ├── Block 0's __shared__ variables → address range A within that pool
+    └── Block 1's __shared__ variables → address range B within that pool
+```
+
+Shared memory is scoped to a block — threads in a block see only their own address range; other blocks cannot access it. It must be allocated before kernel execution (statically via compile-time constants/templates, or dynamically via `extern __shared__` with size as the third launch argument) so the hardware can determine how many blocks fit on the SM simultaneously.
+
+**Banks** are the internal physical structure of shared memory — 32 parallel memory modules that can each service one 4-byte access per cycle independently. Bank assignment cycles by word: word 0 → bank 0, word 1 → bank 1, ..., word 31 → bank 31, word 32 → bank 0 again. If 32 threads each hit a different bank, all 32 accesses complete in 1 cycle. If multiple threads hit the **same bank** (different addresses), they serialize — this is a **bank conflict**. Exception: if multiple threads read the **exact same address**, the hardware broadcasts it — no conflict.
 
 Common case: reading a column of a 2D shared memory array. In a 32-wide array, column elements are 32 words apart → all map to the same bank → 32-way conflict. Fix: add 1 column of padding (`s_mem[N][M+1]`) to shift each row by one word, spreading column accesses across different banks.
 
