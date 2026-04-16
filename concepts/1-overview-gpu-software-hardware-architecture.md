@@ -15,7 +15,19 @@ The GPU software/hardware architecture describes the layered system from physica
 
 Modern GPUs used in AI workloads (e.g., NVIDIA A100, H100) consist of several key physical components:
 
-- **Streaming Multiprocessors (SMs):** The primary compute units on the GPU. Each SM contains multiple CUDA cores, Tensor Cores, registers, shared memory (SRAM), and warp schedulers. All threads in a thread block execute on a single SM.
+- **Streaming Multiprocessors (SMs):** The primary compute units on the GPU. Each SM contains multiple CUDA cores, Tensor Cores, registers, shared memory (SRAM), and warp schedulers. All threads in a thread block execute on a single SM. One SM can hold multiple blocks simultaneously; one block always stays on one SM.
+
+```text
+GPU
+└── SM (×108 on A100)
+    ├── Warp Schedulers (4 per SM) — each owns 32 CUDA cores, issues 1 warp/cycle
+    ├── CUDA Cores (128 per SM = 4 schedulers × 32 cores)
+    ├── Tensor Cores
+    ├── Register File — partitioned per thread at launch
+    └── Shared Memory SRAM pool — partitioned per block, internally 32 banks
+        ├── Block 0's __shared__ variables (address range A)
+        └── Block 1's __shared__ variables (address range B)
+```
 - **Tensor Cores:** Specialized matrix-multiply-accumulate (MMA) units within each SM, designed for mixed-precision matrix operations (e.g., FP16, BF16, INT8, FP8). Tensor Cores provide the bulk of FLOPS for deep learning workloads.
 - **CUDA Cores:** General-purpose floating-point and integer execution units used for scalar and element-wise operations.
 - **Registers:** Per-thread fast storage allocated at kernel launch time. Register pressure directly impacts occupancy.
@@ -46,15 +58,28 @@ GPUs execute code through a hierarchical threading model:
 
 - **Grid:** The top-level software concept — the set of all thread blocks in one kernel launch. A grid is mapped onto the physical SM pool by the hardware scheduler. Grid and SM are **not** one-to-one: a typical grid has thousands of blocks; an A100 has 108 SMs. The scheduler distributes blocks across SMs as they become free, in any order.
 - **Thread Block (CTA — Cooperative Thread Array):** A group of threads (up to 1024) assigned to one SM. One block runs on one SM, but one SM can hold multiple blocks simultaneously (constrained by shared memory and register budgets). Threads within a block share on-chip shared memory (SRAM) and can synchronize via `__syncthreads()`. Blocks cannot communicate with each other directly — they may run on different SMs or at different times.
-- **Warp:** The fundamental unit of GPU execution. A group of 32 threads that execute in lockstep (Single Instruction, Multiple Threads (SIMT)). Warps belong to blocks. The SM warp scheduler switches between warps each cycle to hide memory latency — when one warp stalls on an HBM load (~300–500 cycles), another ready warp runs instead. Fewer blocks on an SM means fewer warps, which reduces the scheduler's ability to hide latency.
+- **Warp:** A **scheduling concept** — a group of 32 threads the warp scheduler dispatches together. Warps have no memory of their own (memory belongs to threads via registers, and blocks via shared memory). The warp scheduler is a physical hardware unit inside each SM. An SM has multiple schedulers (4 on A100), each owning 32 CUDA cores — so up to 4 warps execute truly simultaneously per SM cycle. Within an SM, warps **interleave** to hide latency (concurrency); true parallelism is across SMs. A thread borrows a CUDA core for the duration of each instruction — it does not permanently own one.
 - **Lane:** The position of a thread within its warp (0–31). `laneId = threadIdx.x % warpSize`. Used for warp-level operations like shuffle instructions.
 - **Thread:** The individual execution unit. Each thread owns its own registers and computes a unique index into the data. The thread ID in a 2D block maps to a flat linear index as: `linear = threadIdx.y * blockDim.x + threadIdx.x` (x varies fastest).
 
 ### Thread Layout and Memory Coalescing
 
-CUDA threads are laid out row-major — `threadIdx.x` varies fastest. A warp is 32 consecutive threads by linear index, meaning all threads in a warp share the same `threadIdx.y` and differ only in `threadIdx.x`.
+CUDA defines the linear thread index as:
 
-Memory transactions are issued at the **warp level**: when a warp executes a load/store, the hardware looks at all 32 addresses and merges them into as few 128-byte HBM transactions as possible (**coalescing**). Accesses via `threadIdx.x` (column) are coalesced; accesses via `threadIdx.y` (row) are strided and cause up to 32 separate transactions — 32× bandwidth waste.
+```text
+linear = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y
+```
+
+`threadIdx.x` has no multiplier — it is the innermost term and varies fastest. This is a deliberate NVIDIA convention to match **C's row-major array layout**, where the column index varies fastest in memory. Mapping `threadIdx.x → column` means the natural 2D kernel indexing is already coalesced by default:
+
+```cuda
+float val = input[threadIdx.y * N + threadIdx.x];
+//                               col=threadIdx.x → consecutive addresses → coalesced ✓
+```
+
+If `threadIdx.y` varied fastest instead, the default 2D indexing would produce strided access — a bad default for most kernels.
+
+A warp is 32 consecutive threads by linear index — meaning all threads in a warp share the same `threadIdx.y` and differ only in `threadIdx.x`. Memory transactions are issued at the **warp level**: when a warp executes a load/store, the hardware looks at all 32 addresses and merges them into as few 128-byte HBM transactions as possible (**coalescing**). Accesses via `threadIdx.x` (column) are coalesced; accesses via `threadIdx.y` (row) are strided and cause up to 32 separate transactions — 32× bandwidth waste.
 
 ### Shared Memory (SRAM) and Bank Conflicts
 

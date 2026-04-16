@@ -18,6 +18,32 @@ A **warp** is the fundamental hardware execution unit on NVIDIA GPUs. It consist
 - **Independent registers:** Each thread has its own registers and can operate on different data.
 - **Scheduler unit:** The GPU warp scheduler picks warps to issue instructions each clock cycle; a Streaming Multiprocessor (SM) typically runs many warps concurrently to hide latency.
 
+## Warp as a Scheduling Concept
+
+A warp is a **scheduling concept**, not a memory concept. Warps have no memory of their own — memory belongs to threads (registers) and blocks (shared memory). A warp is purely the unit the hardware warp scheduler uses to dispatch work.
+
+The **warp scheduler** is a physical hardware unit inside each SM. An SM has multiple warp schedulers (4 on A100), each owning 32 CUDA cores. Each scheduler picks one ready warp per cycle and dispatches its 32 threads to its 32 cores simultaneously:
+
+```text
+SM (A100)
+├── Warp Scheduler 0 → 32 CUDA cores  ← issues 1 warp per cycle
+├── Warp Scheduler 1 → 32 CUDA cores  ← issues 1 warp per cycle
+├── Warp Scheduler 2 → 32 CUDA cores  ← issues 1 warp per cycle
+└── Warp Scheduler 3 → 32 CUDA cores  ← issues 1 warp per cycle
+                       ─────────────
+                       128 CUDA cores total, 4 warps truly parallel per cycle
+```
+
+Threads don't permanently own CUDA cores — a thread borrows a core for the duration of each instruction, then releases it.
+
+Within an SM, warps **interleave** (concurrency, not parallelism): when one warp stalls on an HBM load (~300–500 cycles), the scheduler instantly switches to another ready warp. True parallelism happens **across SMs** — each SM runs its own warp pool simultaneously and independently.
+
+```text
+SM 0: warps 0–N  interleaving (hide latency)
+SM 1: warps M–P  interleaving              ← truly parallel with SM 0
+SM 2: warps Q–R  interleaving              ← truly parallel
+```
+
 ## Relationship to SIMT
 
 Single Instruction, Multiple Threads (SIMT) is the *programming model* — you write scalar code for one thread. A warp is the *hardware mechanism* by which SIMT is implemented: the GPU groups 32 threads and executes one instruction across all of them in parallel. The programmer does not explicitly manage warps; they emerge from how the runtime maps thread blocks onto hardware.
@@ -53,9 +79,25 @@ thread 2 → address 100 + 2N×4  ...
 | 32 threads × `float4` (16B), contiguous | 4 × 128B transactions | Full (4× data per instruction) |
 | 32 threads, strided or random | Up to 32 transactions | Severely degraded |
 
+### Why 128 Bytes Per Transaction?
+
+The 128-byte HBM transaction size is deliberately co-designed with the 32-thread warp:
+
+```text
+32 threads × 4 bytes (float) = 128 bytes = exactly 1 HBM cache line
+```
+
+In one warp cycle, all 32 threads issue their memory access simultaneously. If addresses are contiguous, the memory controller services all 32 in a single 128-byte round trip — maximizing bandwidth for that warp cycle. A smaller transaction would need multiple trips per warp cycle; a larger one would fetch data nobody requested.
+
 ### Thread Layout Within a Block
 
-CUDA threads are laid out in **row-major order** — `threadIdx.x` varies fastest. A warp is always 32 consecutive threads by linear index, which means all 32 threads in a warp share the same `threadIdx.y` and differ only in `threadIdx.x`.
+CUDA defines the linear thread index as:
+
+```text
+linear = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y
+```
+
+`threadIdx.x` has no multiplier — it varies fastest. This is a deliberate NVIDIA convention matching **C's row-major layout** where the column index varies fastest in memory. A warp is always 32 consecutive threads by linear index — so all 32 threads in a warp share the same `threadIdx.y` and differ only in `threadIdx.x`.
 
 ```text
 4×4 block (x=col, y=row):
@@ -63,7 +105,31 @@ CUDA threads are laid out in **row-major order** — `threadIdx.x` varies fastes
 (y=1,x=0) (y=1,x=1) (y=1,x=2) (y=1,x=3)  ← warp 1
 ```
 
-Consequence: indexing by `threadIdx.x` (column) produces coalesced access; indexing by `threadIdx.y` (row) produces strided access.
+**The coalescing rule: always put `threadIdx.x` on the column index** (the term without a row-stride multiplier). This ensures consecutive threads in a warp access consecutive memory addresses → 1 HBM transaction.
+
+```cuda
+// Correct — threadIdx.x on column → coalesced
+float val = input[threadIdx.y * N + threadIdx.x];
+
+// Wrong — threadIdx.x on row → strided (all warp threads jump by N floats)
+float val = input[threadIdx.x * N + threadIdx.y];
+```
+
+### Coalescing in Transpose vs Normal Kernels
+
+For most kernels (elementwise, reduction), you can make both reads and writes coalesced by putting `threadIdx.x` on the column for both:
+
+```cuda
+int idx = blockDim.x * blockIdx.x + threadIdx.x;  // column index
+c[idx] = a[idx] + b[idx];  // both reads and write coalesced ✓
+```
+
+**Transpose is special** — it fundamentally cannot coalesce both reads and writes simultaneously. Reading row-by-row is coalesced but writing column-by-column is strided, and vice versa. You must choose one:
+
+- **Coalesce writes** (chosen): `threadIdx.x` on output column → 1 write transaction per warp. Accept strided reads, mitigate with `__ldg` or shared memory tiling.
+- **Coalesce reads**: strided writes — worse, because writes go directly to HBM with no cache mitigation.
+
+Reads have more mitigation options (`__ldg` texture cache, shared memory staging) because the hardware can cache and prefetch. Non-coalesced writes hit HBM directly with no mitigation — so writes are prioritized for coalescing.
 
 ### `__ldg` — Load Global (Read-Only Cache)
 

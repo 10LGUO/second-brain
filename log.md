@@ -61,4 +61,8 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-14] update | concepts/cuda-transpose.md — added shared memory tiling section with bank conflict/padding explanation, dim3, template parameter rationale
 
 ## [2026-04-15] query | Bank structure — banks are internal physical subdivisions of SM's shared memory pool; blocks share the same 32 banks at different address ranges
-## [2026-04-15] update | concepts/1-overview-gpu-software-hardware-architecture.md — clarified SM/shared memory/bank/block relationship with diagram
+## [2026-04-15] query | Warp as scheduling concept — warp scheduler hardware, 4 schedulers × 32 cores = 128 cores on A100, interleaving vs parallelism, threads borrow cores
+## [2026-04-15] query | Coalescing rule — threadIdx.x always on column; why transpose is special; reads vs writes mitigation options (__ldg, shared memory tiling)
+## [2026-04-15] query | 128-byte HBM transaction co-designed with 32-thread warp; threadIdx.x varies fastest by NVIDIA convention to match C row-major
+## [2026-04-15] update | concepts/warp.md — added warp-as-scheduling-concept section (warp scheduler, 4×32 cores, interleave vs parallel), 128B transaction rationale, coalescing rule with transpose comparison
+## [2026-04-15] update | concepts/1-overview-gpu-software-hardware-architecture.md — added full SM hardware diagram, clarified warp as scheduling concept in execution model
