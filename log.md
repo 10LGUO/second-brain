@@ -3,6 +3,7 @@
 Append-only chronological record of all wiki activity.
 
 Format: `## [YYYY-MM-DD] <operation> | <title/description>`
+
 Operations: `ingest`, `query`, `lint`, `create`, `update`
 Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .markdownlint.json, lint.md) rather than knowledge content.
 
@@ -43,26 +44,41 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-07] lint | Completed 12 truncated concept/entity/source pages; deleted 18 empty stubs and superseded duplicates; fixed all remaining lint errors
 
 ## [2026-04-10] query | CUDA kernel anatomy (add.cu) — grid/block/thread hierarchy, host-device memory, float4, FLOAT4 macro, CEIL, bounds check
+
 ## [2026-04-10] create | concepts/cuda-thread-hierarchy.md, concepts/cuda-host-device-memory.md
 
 ## [2026-04-13] query | CUDA reduction kernels (sum.cu) — shared memory tree reduction, warp shuffle reduction, inter-block communication, atomicAdd, atomicMax via CAS loop
+
 ## [2026-04-13] query | Softmax CUDA kernel pipeline — three-pass design (max→sum→normalize), numerical stability, __global__/__device__/static qualifiers
+
 ## [2026-04-13] update | concepts/cuda-thread-hierarchy.md — inter-block communication section (atomics, two-kernel pattern, Cooperative Groups)
+
 ## [2026-04-13] update | concepts/5-kernel-dev-reduce-operator.md — CUDA GPU reduction section: shared memory tree (v1), warp shuffle (v2), float4+shuffle (v3), laneId, __shfl_down_sync, warpSize
+
 ## [2026-04-13] update | concepts/5-kernel-dev-softmax.md — rewrote page: three-kernel pipeline, numerical stability example, atomicMax CAS explanation, CUDA function qualifiers table
+
 ## [2026-04-13] update | concepts/warp.md — added lanes section (laneId, warpSize), warp shuffle instructions (__shfl_down_sync), cross-warp coordination pattern
 
 ## [2026-04-13] query | Matrix transpose — coalescing at warp level, threadIdx.x vs threadIdx.y layout, __ldg (Load Global) read-only texture cache
+
 ## [2026-04-13] update | concepts/warp.md — expanded memory coalescing section: warp-level transaction batching, thread layout within block, __ldg explanation
+
 ## [2026-04-13] create | concepts/cuda-transpose.md — naive vs coalesced-write transpose, why writes prioritized, __ldg tradeoff
 
 ## [2026-04-14] query | Shared memory tiling transpose — bank conflicts, padding, dim3, static vs dynamic shared memory, grid-SM many-to-many mapping, 2D thread linear index
+
 ## [2026-04-14] update | concepts/1-overview-gpu-software-hardware-architecture.md — expanded execution model: grid-SM mapping, lane definition, thread layout/coalescing, shared memory SRAM/bank conflicts with examples
+
 ## [2026-04-14] update | concepts/cuda-transpose.md — added shared memory tiling section with bank conflict/padding explanation, dim3, template parameter rationale
 
 ## [2026-04-15] query | Bank structure — banks are internal physical subdivisions of SM's shared memory pool; blocks share the same 32 banks at different address ranges
+
 ## [2026-04-15] query | Warp as scheduling concept — warp scheduler hardware, 4 schedulers × 32 cores = 128 cores on A100, interleaving vs parallelism, threads borrow cores
+
 ## [2026-04-15] query | Coalescing rule — threadIdx.x always on column; why transpose is special; reads vs writes mitigation options (__ldg, shared memory tiling)
+
 ## [2026-04-15] query | 128-byte HBM transaction co-designed with 32-thread warp; threadIdx.x varies fastest by NVIDIA convention to match C row-major
+
 ## [2026-04-15] update | concepts/warp.md — added warp-as-scheduling-concept section (warp scheduler, 4×32 cores, interleave vs parallel), 128B transaction rationale, coalescing rule with transpose comparison
+
 ## [2026-04-15] update | concepts/1-overview-gpu-software-hardware-architecture.md — added full SM hardware diagram, clarified warp as scheduling concept in execution model

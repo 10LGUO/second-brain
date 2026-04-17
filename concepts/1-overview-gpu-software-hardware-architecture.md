@@ -5,6 +5,7 @@ tags: [gpu, hardware, software-stack, cuda, compilers, operators, ai-infra]
 created: 2026-04-05
 updated: 2026-04-05
 sources: [1-overview.md]
+
 ```
 
 # GPU Software/Hardware Architecture
@@ -27,7 +28,9 @@ GPU
     └── Shared Memory SRAM pool — partitioned per block, internally 32 banks
         ├── Block 0's __shared__ variables (address range A)
         └── Block 1's __shared__ variables (address range B)
+
 ```
+
 - **Tensor Cores:** Specialized matrix-multiply-accumulate (MMA) units within each SM, designed for mixed-precision matrix operations (e.g., FP16, BF16, INT8, FP8). Tensor Cores provide the bulk of FLOPS for deep learning workloads.
 - **CUDA Cores:** General-purpose floating-point and integer execution units used for scalar and element-wise operations.
 - **Registers:** Per-thread fast storage allocated at kernel launch time. Register pressure directly impacts occupancy.
@@ -62,12 +65,37 @@ GPUs execute code through a hierarchical threading model:
 - **Lane:** The position of a thread within its warp (0–31). `laneId = threadIdx.x % warpSize`. Used for warp-level operations like shuffle instructions.
 - **Thread:** The individual execution unit. Each thread owns its own registers and computes a unique index into the data. The thread ID in a 2D block maps to a flat linear index as: `linear = threadIdx.y * blockDim.x + threadIdx.x` (x varies fastest).
 
+### Tile — Data Layout Concept
+
+A **tile** is a rectangular subregion of a matrix (or tensor) that is loaded into shared memory for computation. It is a **data** concept, not an execution concept:
+
+```text
+Compute concepts          Storage concepts
+─────────────────         ────────────────
+Thread  (execution unit)  Tile  (data subregion in shared memory)
+Warp    (32 threads)
+Block   (warps on one SM)
+Grid    (all blocks)
+```
+
+One block is typically responsible for computing one output tile and loads the corresponding input tiles into shared memory. But the two hierarchies are independent — a 32×32 block can process a 64×64 tile (each thread handles 4 elements), or a 16×16 tile (threads over-provisioned).
+
+**Why tiling?** HBM is slow (~500 cycle latency). Loading a tile once into shared memory and reusing it many times for computation amortizes the HBM cost — this is **data reuse**. The tile size is chosen to balance:
+
+- **Shared memory limit** — tile must fit in ~48KB per SM
+- **Warp alignment** — 32-wide tiles align with warp size for natural coalescing
+- **Occupancy** — smaller tiles → more blocks resident per SM → more warps → better latency hiding (constrained by both shared memory budget and hardware block limit per SM, whichever is lower)
+- **Data reuse** — larger tiles → more reuse per HBM load → higher arithmetic intensity
+
+32×32 float tiles (4KB) are the standard: `48KB / 4KB = 12 blocks` can be resident per SM, well within the hardware block limit (32 on A100).
+
 ### Thread Layout and Memory Coalescing
 
 CUDA defines the linear thread index as:
 
 ```text
 linear = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y
+
 ```
 
 `threadIdx.x` has no multiplier — it is the innermost term and varies fastest. This is a deliberate NVIDIA convention to match **C's row-major array layout**, where the column index varies fastest in memory. Mapping `threadIdx.x → column` means the natural 2D kernel indexing is already coalesced by default:
@@ -75,6 +103,7 @@ linear = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blo
 ```cuda
 float val = input[threadIdx.y * N + threadIdx.x];
 //                               col=threadIdx.x → consecutive addresses → coalesced ✓
+
 ```
 
 If `threadIdx.y` varied fastest instead, the default 2D indexing would produce strided access — a bad default for most kernels.
@@ -91,6 +120,7 @@ SM
 └── Blocks assigned to this SM
     ├── Block 0's __shared__ variables → address range A within that pool
     └── Block 1's __shared__ variables → address range B within that pool
+
 ```
 
 Shared memory is scoped to a block — threads in a block see only their own address range; other blocks cannot access it. It must be allocated before kernel execution (statically via compile-time constants/templates, or dynamically via `extern __shared__` with size as the third launch argument) so the hardware can determine how many blocks fit on the SM simultaneously.

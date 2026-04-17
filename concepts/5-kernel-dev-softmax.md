@@ -5,6 +5,7 @@ tags: [softmax, normalization, operator-optimization, deep-learning, attention, 
 created: 2026-04-06
 updated: 2026-04-13
 sources: [5-kernel-dev.md]
+
 ```
 
 # Softmax Operator
@@ -13,6 +14,7 @@ Softmax converts a vector of raw scores into a probability distribution — all 
 
 ```text
 Softmax(x_i) = e^x_i / Σ e^x_j
+
 ```
 
 Example: `[2.0, 1.0, 0.5]` → `[0.59, 0.24, 0.17]` (sum = 1.0). Larger inputs get disproportionately larger outputs (exponential amplification). Used in attention to normalize raw attention scores into weights, and in classification output layers.
@@ -23,6 +25,7 @@ Example: `[2.0, 1.0, 0.5]` → `[0.59, 0.24, 0.17]` (sum = 1.0). Larger inputs g
 
 ```text
 Softmax(x_i) = e^(x_i - M) / Σ e^(x_j - M)
+
 ```
 
 Mathematically identical — M cancels out in numerator and denominator — but all exponents are now ≤ 0, so results stay in (0, 1].
@@ -48,6 +51,7 @@ sum_kernel<<<grid, block>>>(input, sum, max_val, N);
 
 // Pass 3: normalize each element
 softmax_kernel<<<grid, block>>>(input, output, sum, max_val, N);
+
 ```
 
 `max_val` and `sum` are single floats in HBM that act as the communication channel between passes.
@@ -61,6 +65,7 @@ float val = (idx < N) ? input[idx] : (-FLT_MAX);
 for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
     val = fmaxf(val, __shfl_down_sync(0xFFFFFFFF, val, offset));
 // ... write warp max to shared mem, warp 0 reduces, lane 0 calls atomicMax
+
 ```
 
 `atomicMax` for floats is not natively supported — implemented via `atomicCAS` (Compare-And-Swap) loop on the raw int bits. Values in `*address` only ever increase (fmaxf never writes smaller), so the loop always terminates with the true maximum.
@@ -71,6 +76,7 @@ Same warp shuffle structure, with `expf(input[idx] - *max_val)` as the per-threa
 
 ```cuda
 float val = (idx < N) ? expf(input[idx] - *max_val) : 0.0f;
+
 ```
 
 ### softmax_kernel
@@ -79,14 +85,17 @@ One thread per element — no reduction needed:
 
 ```cuda
 output[idx] = expf(input[idx] - *max_val) / (*sum);
+
 ```
 
 Example (`input=[1,2,3]`, `M=3`, `sum=1.503`):
+
 ```text
 thread 0: e^(1-3) / 1.503 = 0.135 / 1.503 = 0.090
 thread 1: e^(2-3) / 1.503 = 0.368 / 1.503 = 0.245
 thread 2: e^(3-3) / 1.503 = 1.0   / 1.503 = 0.665
 sum = 1.0 ✓
+
 ```
 
 ## CUDA Function Qualifiers

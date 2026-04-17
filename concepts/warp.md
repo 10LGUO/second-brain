@@ -5,6 +5,7 @@ tags: [gpu, cuda, warp, simt, parallelism, kernel-development, memory-coalescing
 created: 2026-04-07
 updated: 2026-04-07
 sources: [5-kernel-dev.md]
+
 ```
 
 # Warp
@@ -32,6 +33,7 @@ SM (A100)
 └── Warp Scheduler 3 → 32 CUDA cores  ← issues 1 warp per cycle
                        ─────────────
                        128 CUDA cores total, 4 warps truly parallel per cycle
+
 ```
 
 Threads don't permanently own CUDA cores — a thread borrows a core for the duration of each instruction, then releases it.
@@ -42,6 +44,7 @@ Within an SM, warps **interleave** (concurrency, not parallelism): when one warp
 SM 0: warps 0–N  interleaving (hide latency)
 SM 1: warps M–P  interleaving              ← truly parallel with SM 0
 SM 2: warps Q–R  interleaving              ← truly parallel
+
 ```
 
 ## Relationship to SIMT
@@ -55,15 +58,18 @@ Memory transactions are issued at the **warp level**, not the thread level. When
 Each thread operates on its own data — but whether those 32 accesses cost 1 transaction or 32 depends entirely on whether the addresses are contiguous.
 
 **Coalesced (contiguous addresses):**
+
 ```text
 thread 0 → address 100
 thread 1 → address 104
 thread 2 → address 108  ...  thread 31 → address 224
 
 → one 128-byte transaction covers all 32 floats ✓
+
 ```
 
 **Non-coalesced (strided addresses):**
+
 ```text
 thread 0 → address 100
 thread 1 → address 100 + N×4   (next row, far away)
@@ -71,6 +77,7 @@ thread 2 → address 100 + 2N×4  ...
 
 → up to 32 separate transactions, each fetching 128 bytes but using only 4 ✗
 → 32× more HBM traffic than necessary
+
 ```
 
 | Access pattern | Transactions | Effective bandwidth |
@@ -85,6 +92,7 @@ The 128-byte HBM transaction size is deliberately co-designed with the 32-thread
 
 ```text
 32 threads × 4 bytes (float) = 128 bytes = exactly 1 HBM cache line
+
 ```
 
 In one warp cycle, all 32 threads issue their memory access simultaneously. If addresses are contiguous, the memory controller services all 32 in a single 128-byte round trip — maximizing bandwidth for that warp cycle. A smaller transaction would need multiple trips per warp cycle; a larger one would fetch data nobody requested.
@@ -95,6 +103,7 @@ CUDA defines the linear thread index as:
 
 ```text
 linear = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y
+
 ```
 
 `threadIdx.x` has no multiplier — it varies fastest. This is a deliberate NVIDIA convention matching **C's row-major layout** where the column index varies fastest in memory. A warp is always 32 consecutive threads by linear index — so all 32 threads in a warp share the same `threadIdx.y` and differ only in `threadIdx.x`.
@@ -103,6 +112,7 @@ linear = threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blo
 4×4 block (x=col, y=row):
 (y=0,x=0) (y=0,x=1) (y=0,x=2) (y=0,x=3)  ← warp 0: same y, consecutive x
 (y=1,x=0) (y=1,x=1) (y=1,x=2) (y=1,x=3)  ← warp 1
+
 ```
 
 **The coalescing rule: always put `threadIdx.x` on the column index** (the term without a row-stride multiplier). This ensures consecutive threads in a warp access consecutive memory addresses → 1 HBM transaction.
@@ -113,6 +123,7 @@ float val = input[threadIdx.y * N + threadIdx.x];
 
 // Wrong — threadIdx.x on row → strided (all warp threads jump by N floats)
 float val = input[threadIdx.x * N + threadIdx.y];
+
 ```
 
 ### Coalescing in Transpose vs Normal Kernels
@@ -122,6 +133,7 @@ For most kernels (elementwise, reduction), you can make both reads and writes co
 ```cuda
 int idx = blockDim.x * blockIdx.x + threadIdx.x;  // column index
 c[idx] = a[idx] + b[idx];  // both reads and write coalesced ✓
+
 ```
 
 **Transpose is special** — it fundamentally cannot coalesce both reads and writes simultaneously. Reading row-by-row is coalesced but writing column-by-column is strided, and vice versa. You must choose one:
@@ -138,6 +150,7 @@ Reads have more mitigation options (`__ldg` texture cache, shared memory staging
 ```cuda
 output[row * M + col] = __ldg(&input[col * N + row]);
 //     coalesced write ✓        strided read — softened by texture cache
+
 ```
 
 `__ldg` does not fix non-coalescing — it reduces the penalty by hitting cache more often for irregular access. Maps directly to the PTX `LDG` (Load Global) instruction.
@@ -165,6 +178,7 @@ Each of the 32 threads in a warp occupies a **lane** (0–31). The term comes fr
 ```cuda
 int laneId = threadIdx.x % warpSize;   // position within the warp (0–31)
 int warpId = threadIdx.x / warpSize;   // which warp within the block
+
 ```
 
 `laneId` is more precise than `threadIdx.x` for intra-warp operations: lane 0 of warp 1 has `threadIdx.x = 32`, not 0. Using `laneId` gives the correct intra-warp position for checks like `if (laneId == 0)`.
@@ -182,6 +196,7 @@ Because all 32 threads in a warp execute in lockstep, values can be passed direc
 for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
     val += __shfl_down_sync(0xFFFFFFFF, val, offset);
 // After log2(32)=5 rounds, lane 0 holds the sum of all 32 lanes
+
 ```
 
 - `mask = 0xFFFFFFFF` — all 32 lanes participate
