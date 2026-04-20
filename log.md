@@ -98,3 +98,9 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-20] update | concepts/cuda-gemm.md — expanded BM/BN/BK section: output ownership semantics, grid sizing formula, block→thread→element hierarchy diagram
 
 ## [2026-04-20] update | CUDA_Kernel_Samples sgemm/kernel2.cu, kernel3.cu — added comments explaining BM/BN/BK/TM ownership semantics and grid/block sizing rationale
+
+## [2026-04-20] ingest | sgemm/README.md — seven progressive SGEMM kernels (naive, shared memory, 1D/2D thread tile, float4, double buffer)
+
+## [2026-04-20] create | sources/sgemm-readme.md — full source summary of CUDA SGEMM README
+
+## [2026-04-20] update | concepts/cuda-gemm.md — added thread tile, float4, double buffer sections; optimization progression table

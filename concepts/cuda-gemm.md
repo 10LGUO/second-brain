@@ -166,6 +166,131 @@ Larger tiles → more reuse → higher arithmetic intensity → closer to comput
 
 ---
 
+## Thread Tile GEMM
+
+Instead of one thread per output element, each thread owns a TM×TN sub-tile of the block's BM×BN patch. This increases arithmetic intensity by amortizing shared memory reads over more compute.
+
+```text
+TM = rows each thread owns (thread tile height)
+TN = cols each thread owns (thread tile width)
+
+block_row_thread = BN / TN   // threads across one row of the block tile
+block_col_thread = BM / TM   // threads down one column of the block tile
+thread_num = block_row_thread × block_col_thread  // total threads per block
+
+tx = (threadIdx.x % block_row_thread) * TN   // left column edge of this thread's tile
+ty = (threadIdx.x / block_row_thread) * TM   // top row edge of this thread's tile
+```
+
+The register accumulator becomes a 2D array:
+
+```cuda
+float accum[TM][TN] = {0.0f};
+
+for (int i = 0; i < BK; i++) {
+    // cache Bs row into register to avoid repeated shared memory reads
+    float b_reg[TN];
+    for (int j = 0; j < TN; j++) b_reg[j] = Bs[i * BN + tx + j];
+
+    for (int m = 0; m < TM; m++)
+        for (int n = 0; n < TN; n++)
+            accum[m][n] += As[(ty + m) * BK + i] * b_reg[n];
+}
+
+// write back TM×TN elements
+for (int m = 0; m < TM; m++)
+    for (int n = 0; n < TN; n++)
+        C[(ty + m) * N + (tx + n)] = accum[m][n];
+```
+
+**Why thread tile improves arithmetic intensity:**
+
+With TM=TN=8, one inner BK iteration reads 1 Bs element + 8 As elements and does 8 FMAs. With a 2D tile (TM=TN=8), it reads 8 Bs + 8 As and does 64 FMAs → compute-to-memory ratio 64:16 = **4:1** vs 1:2 in the naive block tile.
+
+**Tradeoff:** Larger TM×TN → more registers per thread → fewer threads fit on SM → lower occupancy. Lower occupancy means fewer warps available to hide memory latency. The optimal tile size balances arithmetic intensity against occupancy.
+
+---
+
+## Vectorized Memory Access (float4)
+
+Instead of loading one float per instruction, use `float4` to load 4 floats per instruction. This reduces instruction count and latency for the global→shared copy phase.
+
+```cuda
+float4 *A4 = reinterpret_cast<float4*>(A);
+// loads 4 floats in a single instruction
+float4 tmp = A4[...];
+```
+
+**Key detail — transpose during copy:** When copying A into `As`, the data is transposed so that subsequent reads of `As` in the compute loop are coalesced (consecutive memory addresses):
+
+```text
+Normal copy:      As[row * BK + col] = A[row * K + col]
+Transposed copy:  As[col * BM + row] = A[row * K + col]  ← As is now col-major
+```
+
+After transposing, reading a column of `As` during compute is reading consecutive memory — no bank conflicts.
+
+**Requirements:** pointer must be 16-byte aligned; data size must be a power of 2.
+
+---
+
+## Double Buffer (Prefetch)
+
+Overlaps the global→shared memory load of tile K+1 with the computation of tile K, hiding load latency.
+
+**Key insight:** GPU memory load units and compute units are separate hardware — they execute in parallel. Sequential code = sequential *instruction issue*, but different hardware executes loads and FMAs concurrently.
+
+```text
+Without double buffer:
+  [load tile K] → sync → [compute tile K] → sync → [load tile K+1] → ...
+  compute must wait for each load
+
+With double buffer:
+  [load tile 0 → buf A]
+  loop:
+    [load tile K+1 → buf B]   ← issued first, executes in memory unit
+    [compute tile K from buf A] ← runs concurrently in compute unit
+    swap A ↔ B
+```
+
+This eliminates the first `__syncthreads()` inside the loop (load→compute barrier). The second sync (compute→load) cannot be removed because the window cannot advance until all threads finish.
+
+**Two levels:**
+
+1. **Block level (shared memory):** 2× shared memory alternates between loading and computing
+2. **Thread level (registers):** 2× register array eliminates shared→register latency
+
+**Caveat:** The very first load has no overlap (cold start). Only from the second iteration onward is latency hidden.
+
+---
+
+## Mental Model Summary
+
+```text
+1. Thread assignment:  thread (tx,ty) → output element C[ty][tx] within tile
+2. Pointer init:       move A, B, C pointers to this block's tile origin
+3. K loop:            step through K dimension in BK chunks
+   a. Copy:           all threads collectively fill As, Bs (1 element each, parallel)
+   b. Sync:           wait for tile to be fully loaded
+   c. Compute:        each thread accumulates BK multiply-adds into accum (sequential)
+   d. Sync:           wait for all reads before overwriting tile
+4. Write:             thread writes accum to C
+```
+
+Optimization progression:
+
+```text
+Kernel 1 (naive):        1 thread → 1 element, reads global memory directly
+Kernel 2 (block tile):   1 thread → 1 element, reads via shared memory
+Kernel 3 (1D tile):      1 thread → TM elements (1 col, TM rows), register accum
+Kernel 4 (2D tile):      1 thread → TM×TN elements, register accum[TM][TN]
+Kernel 5 (reg cache):    preload As/Bs columns into registers before inner loop
+Kernel 6 (float4):       vectorized global→shared copy, transpose As during copy
+Kernel 7 (double buf):   overlap load K+1 with compute K, eliminate one __syncthreads()
+```
+
+---
+
 ## Related Concepts
 
 - [[cuda-thread-hierarchy]]
@@ -177,3 +302,4 @@ Larger tiles → more reuse → higher arithmetic intensity → closer to comput
 ## Sources
 
 - [[CUDA_Kernel_Samples]] `sgemm/`
+- [[sgemm-readme]]

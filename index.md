@@ -46,3 +46,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 `sources/kernel-dev.md` — GPU Operator Development Introduction (SJTU AI Infra Team); CUDA kernel optimization techniques, GPU memory hierarchy, warp reduce, shared memory tiling, bank conflict, ping-pong buffer, roofline model, operator development workflow
 
 ---
+
+- [CUDA SGEMM Optimization](sources/sgemm-readme.md) — Seven progressive SGEMM kernels: naive → shared memory tiling → 1D/2D thread tile → float4 → double buffer
+
+---
