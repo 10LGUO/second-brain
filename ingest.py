@@ -37,6 +37,14 @@ WIKI_ROOT = Path(__file__).parent
 SCHEMA = (WIKI_ROOT / "schema.md").read_text()
 TODAY = date.today().isoformat()
 
+# Load API key from env or ~/.anthropic_key (never committed to git)
+if not os.environ.get("ANTHROPIC_API_KEY"):
+    key_file = Path.home() / ".anthropic_key"
+    if key_file.exists():
+        os.environ["ANTHROPIC_API_KEY"] = key_file.read_text().strip()
+    else:
+        sys.exit("ANTHROPIC_API_KEY environment variable is not set.")
+
 CLIENT = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
 
 

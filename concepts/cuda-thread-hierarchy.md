@@ -39,6 +39,47 @@ Threads in *different* blocks cannot communicate directly.
 
 **Warp** — 32 threads the hardware always schedules together. See [[warp]].
 
+## Who Decides What
+
+A common source of confusion — block, warp, and thread sizes are determined by different parties:
+
+| Concept | Size determined by | When |
+| --- | --- | --- |
+| Block size | **You** (programmer) | At kernel launch: `dim3 block(256)` |
+| Warp size | **Hardware** (always 32) | Fixed — never changes |
+| Warps per block | **Derived** = block_size / 32 | e.g. 256 threads → 8 warps |
+| Grid size | **You** (programmer) | At kernel launch: `dim3 grid(...)` |
+| Registers per thread | **Compiler** | Based on how many live variables your code needs |
+| Blocks resident on SM | **Derived** at launch | `min(shared_mem_limit, register_limit, hardware_block_limit)` |
+| Warps resident on SM | **Derived** = blocks_resident × warps_per_block | Determines occupancy |
+
+The compiler's role is specifically register allocation — it analyzes your kernel and assigns registers to hold all live variables (loop indices, local arrays like `accum[TM][TN]`, intermediate values, pointers). More registers per thread → fewer threads fit on SM → fewer resident warps → lower occupancy.
+
+The warp scheduler is a **fixed physical hardware unit** (4 on A100). It picks from the pool of resident warps each cycle. Occupancy determines how large that pool is — more resident warps gives the scheduler more choices when one stalls on memory.
+
+```text
+Programmer decides:   block size (e.g. 256 threads)
+Hardware fixes:       warp size = 32 threads always
+Hardware derives:     256 / 32 = 8 warps per block
+
+Compiler decides:     registers per thread (based on code)
+Hardware derives:     blocks resident on SM (see below)
+Hardware derives:     warps resident = blocks_resident × warps_per_block
+                      → this is occupancy
+```
+
+**Blocks resident on SM** is the key derived quantity — constrained by whichever resource runs out first:
+
+```text
+blocks_resident = min(
+    floor(48KB / shared_mem_per_block),              // shared memory limit
+    floor(65536 / registers_per_thread / threads_per_block),  // register file limit
+    32                                               // hardware block limit (A100)
+)
+```
+
+Increasing shared memory per block, registers per thread, or threads per block all reduce `blocks_resident` — and therefore reduce the number of warps the scheduler has available to hide latency.
+
 ## Kernel Launch Syntax
 
 ```cuda

@@ -42,3 +42,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 `sources/5-kernel-dev.md` — Kernel operator development covering SIMD/SIMT programming models, LayerNorm/Softmax/Reduce implementations, and AI chip performance optimization techniques.
 
 ---
+
+`sources/kernel-dev.md` — GPU Operator Development Introduction (SJTU AI Infra Team); CUDA kernel optimization techniques, GPU memory hierarchy, warp reduce, shared memory tiling, bank conflict, ping-pong buffer, roofline model, operator development workflow
+
+---

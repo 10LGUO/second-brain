@@ -82,3 +82,13 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-15] update | concepts/warp.md — added warp-as-scheduling-concept section (warp scheduler, 4×32 cores, interleave vs parallel), 128B transaction rationale, coalescing rule with transpose comparison
 
 ## [2026-04-15] update | concepts/1-overview-gpu-software-hardware-architecture.md — added full SM hardware diagram, clarified warp as scheduling concept in execution model
+
+## [2026-04-16] lint | Fixed MD031/MD022 errors across warp.md, softmax.md, transpose.md, architecture.md, log.md
+
+## [2026-04-18] query | GEMM block tile kernel — pointer initialization, K loop, A/B pointer advancement
+
+## [2026-04-19] query | GEMM tiling mechanics — thread assignment, __syncthreads() purpose, accum register, copy parallelism vs compute sequentiality, why tiling reduces HBM traffic
+
+## [2026-04-19] create | concepts/cuda-gemm.md — GEMM thread assignment, M/N/K/BM/BN/BK relationships, K loop with two sync points, tiling reuse analysis, mental model summary
+
+## [2026-04-19] ingest | kernel_dev
