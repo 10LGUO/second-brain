@@ -92,3 +92,9 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-19] create | concepts/cuda-gemm.md — GEMM thread assignment, M/N/K/BM/BN/BK relationships, K loop with two sync points, tiling reuse analysis, mental model summary
 
 ## [2026-04-19] ingest | kernel_dev
+
+## [2026-04-20] query | BM/BN meaning — block tile output ownership dimensions; grid sized CEIL(M,BM)×CEIL(N,BN)
+
+## [2026-04-20] update | concepts/cuda-gemm.md — expanded BM/BN/BK section: output ownership semantics, grid sizing formula, block→thread→element hierarchy diagram
+
+## [2026-04-20] update | CUDA_Kernel_Samples sgemm/kernel2.cu, kernel3.cu — added comments explaining BM/BN/BK/TM ownership semantics and grid/block sizing rationale

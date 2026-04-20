@@ -32,9 +32,24 @@ The K dimension is the **reduction dimension** — it is summed over and disappe
 Tiled versions introduce block tile dimensions:
 
 ```text
-BM = tile height for A and C  (rows per block tile)
-BN = tile width  for B and C  (cols per block tile)
-BK = tile depth  (cols of A tile = rows of B tile, stepped through in the K loop)
+BM = rows of C that one block owns   (block tile height)
+BN = cols of C that one block owns   (block tile width)
+BK = depth step through K per iteration (cols of A tile = rows of B tile)
+```
+
+**BM and BN are the output ownership dimensions** — they define the BM×BN patch of C that a single block is responsible for computing end-to-end. The grid is sized to tile the full output:
+
+```text
+grid = (CEIL(N, BN), CEIL(M, BM))   // one block per BM×BN patch of C
+```
+
+BK is the inner loop step — A and B are loaded BK columns/rows at a time into shared memory (`As[BM×BK]` and `Bs[BK×BN]`), and the outer K loop steps through all K in BK-sized chunks.
+
+```text
+C (M×N full output)
+  └── Block tile (BM×BN) — one block per patch, grid = CEIL(M,BM) × CEIL(N,BN)
+        └── Thread tile (TM×TN) — thread tile GEMM: one thread per TM×TN sub-patch
+              └── Single element (1×1) — block tile GEMM: one thread per element
 ```
 
 Each thread block computes one BM×BN tile of C by stepping through K in BK-sized chunks.
