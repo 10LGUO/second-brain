@@ -108,3 +108,7 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-21] ingest | grid_size/block_size selection rules — occupancy formula, wave sizing, OneFlow grid formula
 
 ## [2026-04-21] create | concepts/cuda-launch-config.md — block_size rules (warp alignment, occupancy floor, SM divisors, register pressure), grid_size rules (wave sizing, OneFlow formula)
+
+## [2026-04-21] update | concepts/cuda-gemm.md — expanded pointer init section: per-matrix explanation of why K/N/bx appear or not, dimension alignment requirement
+
+## [2026-04-21] create | quiz.md — 18 self-test questions covering GPU architecture, memory hierarchy, GEMM tiling, thread tile, kernel optimization, and launch configuration

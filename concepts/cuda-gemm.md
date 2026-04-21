@@ -73,12 +73,48 @@ The block at grid position `(bx, by)` handles the output tile starting at row `b
 Before the main loop, each pointer is moved to the tile's top-left corner so all subsequent indexing is relative:
 
 ```cuda
-A = &A[(by * BM) * K];       // skip to this block's starting row in A
-B = &B[bx * BN];             // skip to this block's starting col in B
-C = &C[(by * BM) * N + bx * BN];  // skip to this block's output tile in C
+A = &A[(by * BM) * K];            // skip to this block's starting row in A
+B = &B[bx * BN];                  // skip to this block's starting col in B
+C = &C[(by * BM) * N + bx * BN]; // skip to this block's output tile in C
 ```
 
 After this, `A[ty * K + tx]` means "ty rows down, tx cols right from the tile origin" — no need to carry block offsets through every index.
+
+### Why each pointer looks the way it does
+
+All three matrices are stored **row-major**: element `[row][col]` is at `base + row * row_stride + col`.
+
+```text
+Matrix   Shape   Row stride   Block's top-left corner        Pointer init
+──────   ─────   ──────────   ───────────────────────        ────────────
+A        M×K     K            row = by*BM, col = 0           by*BM * K
+B        K×N     N            row = 0,     col = bx*BN       0*N + bx*BN  =  bx*BN
+C        M×N     N            row = by*BM, col = bx*BN       by*BM * N + bx*BN
+```
+
+**A: why K appears, why bx does not**
+
+`K` is A's row stride (each row has K elements), so skipping `by*BM` rows costs `by*BM * K` elements. `bx` does not appear because A is not partitioned by column — this block needs **all K columns** of its BM rows to compute the full dot product.
+
+**B: why only bx*BN, no K**
+
+B's top-left for this block is row 0, col `bx*BN`. Row 0 means no row offset — just slide `bx*BN` columns right. K does not appear because B's row stride is N, not K.
+
+**C: why K never appears**
+
+C is M×N — K has been summed away and does not exist as a dimension in C. C's row stride is N, so the top-left is `by*BM * N + bx*BN`.
+
+### Dimension alignment requirement
+
+The K loop steps in BK increments and the grid tiles in BM/BN increments with no bounds checks. This requires:
+
+```text
+M divisible by BM
+N divisible by BN
+K divisible by BK
+```
+
+If not, the last tile reads out of bounds. Production kernels either assert this at the call site or pad matrices to the next multiple before launching.
 
 ---
 
