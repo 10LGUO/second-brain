@@ -22,12 +22,34 @@ Grid
 
 **Grid** — the entire kernel launch. All blocks together.
 
-**Block** (thread block) — a group of threads assigned to one Streaming Multiprocessor (SM). Threads within a block can:
+**Block** (thread block) — a **resource allocation unit** assigned to one SM. Its sole purpose is to group warps that share resources and can coordinate with each other:
 
-- Share **shared memory** (fast on-chip L1 cache)
-- Synchronize with `__syncthreads()`
+- **Shared memory** — scoped to the block; all threads in the block share it
+- **`__syncthreads()`** — barrier within the block only
+- **SM assignment** — the block is the unit the hardware scheduler places on an SM
 
-Threads in *different* blocks cannot communicate directly.
+Everything else — actual execution, memory transactions, latency hiding — happens at the warp level. The block is the container that defines which warps share resources and can talk to each other. Threads in different blocks cannot communicate directly.
+
+```text
+Block = resource bundle assigned to one SM
+  ├── shared memory pool  (scoped to this block)
+  ├── register file slice (partitioned across threads)
+  └── set of warps that can synchronize via __syncthreads()
+```
+
+**Why max 1024 threads per block?** Hardware limit — 1024 threads = 32 warps, which is the maximum the SM's per-block warp tracking supports. Beyond that, register pressure also makes it nearly impossible to have more than one block resident on the SM.
+
+**Block shape** can be any x/y/z combination as long as the total ≤ 1024, within per-dimension hardware limits (x≤1024, y≤1024, z≤64):
+
+```text
+dim3 block(1024)      // 1D — simple array kernels
+dim3 block(32, 32)    // 2D — matrix kernels, warp-aligned in x
+dim3 block(16, 16)    // 2D — smaller tile, more blocks per SM
+dim3 block(256)       // 1D — thread tile GEMM
+dim3 block(8, 8, 8)   // 3D — 512 threads, volumetric kernels
+```
+
+The shape is a programmer convenience for index arithmetic — the hardware flattens all threads to a 1D sequence anyway. Pick the shape that makes `threadIdx.x/y/z → data index` mapping cleanest, keeping `threadIdx.x` on the column for coalescing.
 
 **Thread** — the unit you write code for. Each thread gets unique built-in variables:
 
@@ -188,6 +210,7 @@ The GPU hardware scheduler distributes blocks across SMs automatically. An SM ca
 - [[simt-programming-model]]
 - [[cuda-host-device-memory]]
 - [[arithmetic-intensity]]
+- [[cuda-launch-config]]
 
 ## Sources
 

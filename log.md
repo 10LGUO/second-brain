@@ -104,3 +104,7 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-20] create | sources/sgemm-readme.md — full source summary of CUDA SGEMM README
 
 ## [2026-04-20] update | concepts/cuda-gemm.md — added thread tile, float4, double buffer sections; optimization progression table
+
+## [2026-04-21] ingest | grid_size/block_size selection rules — occupancy formula, wave sizing, OneFlow grid formula
+
+## [2026-04-21] create | concepts/cuda-launch-config.md — block_size rules (warp alignment, occupancy floor, SM divisors, register pressure), grid_size rules (wave sizing, OneFlow formula)
