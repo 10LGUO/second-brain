@@ -112,3 +112,5 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-21] update | concepts/cuda-gemm.md — expanded pointer init section: per-matrix explanation of why K/N/bx appear or not, dimension alignment requirement
 
 ## [2026-04-21] create | quiz.md — 18 self-test questions covering GPU architecture, memory hierarchy, GEMM tiling, thread tile, kernel optimization, and launch configuration
+
+## [2026-04-26] create | concepts/cuda-cheatsheet.md — hardware invariants, per-architecture specs (threads/SM, blocks/SM, shared mem), occupancy formula, block/grid sizing rules, GEMM parameter roles, common index formulas
