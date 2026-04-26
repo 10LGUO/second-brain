@@ -85,33 +85,46 @@ Most architectures (Pascal and later): 65536 × 32-bit registers per SM
 Occupancy = warps resident on SM / max warps SM supports.
 
 ```text
+// [ALWAYS 32] warp size never changes
 max_warps = max_threads_per_SM / 32
 
 blocks_resident = min(
-    floor(max_threads_per_SM / threads_per_block),   // thread limit
-    floor(shared_mem_per_SM  / shared_mem_per_block), // shared memory limit
-    floor(65536 / (regs_per_thread × threads_per_block)), // register limit
-    max_blocks_per_SM                                 // hardware block limit
+    floor(max_threads_per_SM / threads_per_block),
+    //    ^ [VARIES: 2048 A100/V100, 1536 RTX4090, 1024 Turing]
+    //                            ^ [YOUR KERNEL: BM*BN/(TM*TN)]
+
+    floor(shared_mem_per_SM / shared_mem_per_block),
+    //    ^ [VARIES: 192KB Ampere, 128KB Ada/Volta, 64KB Pascal/Turing]
+    //                           ^ [YOUR KERNEL: (BM*BK + BK*BN)*4 bytes]
+
+    floor(65536 / (regs_per_thread × threads_per_block)),
+    //    ^ [CONSTANT: 65536 × 32-bit registers/SM, Pascal and later]
+    //                 ^ [COMPILER decides: check with nvcc --ptxas-options=-v]
+    //                                      ^ [YOUR KERNEL: BM*BN/(TM*TN)]
+
+    max_blocks_per_SM
+    // ^ [VARIES: 32 Ampere/Pascal/Volta, 24 Ada, 16 Turing/Kepler]
 )
 
 warps_resident = blocks_resident × (threads_per_block / 32)
+//                                                      ^ [ALWAYS 32]
 occupancy      = warps_resident / max_warps
 ```
 
 **Example** — kernel4 on A100, BM=BN=128, BK=8, TM=TN=8:
 
 ```text
-threads_per_block  = 128*128 / (8*8) = 256
-shared_mem/block   = (128*8 + 8*128)*4 = 8KB
+threads_per_block = BM*BN/(TM*TN) = 128*128/64 = 256          [your kernel]
+shared_mem/block  = (BM*BK + BK*BN)*4 = (128*8 + 8*128)*4 = 8KB [your kernel]
 
-thread limit:   floor(2048 / 256)  = 8 blocks
-shared limit:   floor(48KB / 8KB)  = 6 blocks   ← bottleneck
-register limit: depends on compiler (use nvcc --ptxas-options=-v to check)
-hardware limit: 32 blocks
+thread limit:   floor(2048 / 256) = 8 blocks   [2048 = A100 chip constant]
+shared limit:   floor(48KB / 8KB) = 6 blocks   [48KB = A100 default per block] ← bottleneck
+register limit: compiler-dependent             [65536 regs/SM = A100 chip constant]
+hardware limit: 32 blocks                      [32 = A100 chip constant]
 
 blocks_resident = 6
-warps_resident  = 6 × (256/32) = 48
-occupancy       = 48 / 64 = 75%
+warps_resident  = 6 × (256/32) = 48            [32 = always constant]
+occupancy       = 48 / 64 = 75%                [64 = 2048/32 = A100 max warps]
 ```
 
 Query at runtime:
@@ -160,21 +173,22 @@ GEMM grid                     (CEIL(N, BN), CEIL(M, BM)) — one block per BM×B
 ## GEMM Parameter Roles
 
 ```text
-Parameter   Determines                        Constraint
-─────────   ──────────                        ──────────
-BM, BN      block tile output size            shared_mem: (BM*BK + BK*BN)*4 ≤ 48KB
-BK          K-loop step (shared mem slice)    same shared memory constraint
-TM, TN      per-thread output size            register pressure (accum[TM][TN] in registers)
-block_size  = BM*BN/(TM*TN)                  must be ≤ 1024, multiple of 32
-grid        = (CEIL(N,BN), CEIL(M,BM))       M,N,K must be divisible by BM,BN,BK
+Parameter   Determines          Constraint                               What's fixed vs yours
+─────────   ──────────          ──────────                               ─────────────────────
+BM, BN      block tile size     (BM*BK + BK*BN)*4 ≤ 48KB               48KB = chip constant (default, configurable)
+BK          K-loop step         same shared memory constraint            —
+TM, TN      per-thread output   register pressure: accum[TM][TN]        65536 regs/SM = chip constant
+block_size  = BM*BN/(TM*TN)    ≤ 1024 [ALWAYS], multiple of 32 [ALWAYS]
+grid        = (CEIL(N,BN),      M,N,K divisible by BM,BN,BK             —
+               CEIL(M,BM))
 ```
 
 Key distinction:
 
 ```text
-Shared memory (48KB) → governs BM, BN, BK  (input tile sizes As, Bs)
-Registers            → governs TM, TN       (output accum lives in registers, not shared mem)
-Thread count         → driven by output tile, not input tile
+Shared memory [48KB, chip constant] → governs BM, BN, BK  (input tiles As, Bs live here)
+Registers     [65536, chip constant] → governs TM, TN      (output accum[TM][TN] lives here)
+Thread count  [≤1024, always true]  → driven by output tile BM*BN/(TM*TN), not input tile
 ```
 
 ---
