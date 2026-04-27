@@ -114,3 +114,5 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-21] create | quiz.md — 18 self-test questions covering GPU architecture, memory hierarchy, GEMM tiling, thread tile, kernel optimization, and launch configuration
 
 ## [2026-04-26] create | concepts/cuda-cheatsheet.md — hardware invariants, per-architecture specs (threads/SM, blocks/SM, shared mem), occupancy formula, block/grid sizing rules, GEMM parameter roles, common index formulas
+
+## [2026-04-27] update | concepts/warp.md — expanded warp shuffle section: __shfl_xor_sync vs __shfl_down_sync, two-way fold mental model, why XOR gives same pairs as +offset, order of operations (snapshot semantics), when to use each

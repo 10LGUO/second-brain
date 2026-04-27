@@ -189,21 +189,88 @@ int warpId = threadIdx.x / warpSize;   // which warp within the block
 
 Because all 32 threads in a warp execute in lockstep, values can be passed directly between lanes through registers — no shared memory, no `__syncthreads()` needed.
 
-**`__shfl_down_sync(mask, val, offset)`**: lane `i` receives `val` from lane `i + offset`.
+Both shuffle variants are strictly intra-warp (register-to-register, no shared memory, no `__syncthreads()`), and cannot cross warp boundaries.
+
+**`__shfl_down_sync(mask, val, offset)`** — one-way read: lane `i` receives `val` from lane `i + offset`.
 
 ```cuda
-// Example: warp sum reduction
+// Warp sum reduction — only lane 0 gets the final result
 for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
     val += __shfl_down_sync(0xFFFFFFFF, val, offset);
-// After log2(32)=5 rounds, lane 0 holds the sum of all 32 lanes
-
 ```
 
-- `mask = 0xFFFFFFFF` — all 32 lanes participate
-- Strictly intra-warp — cannot cross warp boundaries
-- Lanes where `lane + offset > 31` receive their own value back (undefined but irrelevant — upper lanes are discarded as the tree converges)
+Mental model — one-way fold. At each step, the left half absorbs the right half and the right half is discarded:
 
-For cross-warp coordination, shared memory is the only option: lane 0 of each warp writes to `s_y[warpId]`, then warp 0 reads all entries after `__syncthreads()`.
+```text
+offset=16:  lanes 0..15 absorb lanes 16..31  → right half dead
+offset=8:   lanes 0..7  absorb lanes 8..15   → only left quarter alive
+...
+offset=1:   lane 0 absorbs lane 1            → lane 0 has full sum
+```
+
+5 steps (log2(32)), only lane 0 holds the final value. Use when only one lane needs the result (e.g. writing one output element per warp).
+
+---
+
+**`__shfl_xor_sync(mask, val, offset)`** — symmetric exchange: lane `i` exchanges `val` with lane `i ^ offset`. Both lanes get the combined value.
+
+```cuda
+// Warp sum reduction — ALL lanes get the final result
+for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
+    val += __shfl_xor_sync(0xFFFFFFFF, val, offset);
+```
+
+Mental model — two-way fold. At each step, every lane exchanges with its XOR partner — both sides survive with the combined value:
+
+```text
+offset=16:  lane 0 ↔ lane 16,  lane 1 ↔ lane 17, ...  all 32 lanes survive, each covers 2
+offset=8:   lane 0 ↔ lane 8,   lane 1 ↔ lane 9,  ...  all 32 lanes survive, each covers 4
+offset=4:   all 32 lanes, each covers 8
+offset=2:   all 32 lanes, each covers 16
+offset=1:   all 32 lanes, each covers 32 → every lane has full sum
+```
+
+5 steps (log2(32)), every lane holds the final value. Use when all lanes need the result (e.g. softmax where every thread needs `max_val` and `sum` to compute its own output).
+
+**Why XOR gives the same pairs as +offset:**
+
+For lanes 0..15, `N ^ 16 = N + 16` (bit 4 was 0). So the pairing is identical to `__shfl_down_sync` — same tree structure, same partners at each step. The only difference is that XOR makes the exchange symmetric (both sides get the combined value) instead of one-directional.
+
+```text
+offset=16, lane 0:   0 ^ 16 = 16   same partner as 0 + 16 = 16
+offset=16, lane 16:  16 ^ 16 = 0   maps back to lane 0 (symmetric)
+```
+
+**Order of operations — no race condition:**
+
+`__shfl_xor_sync` reads the partner's value as a snapshot **before** any lane updates its variable. So both sides see the original values:
+
+```text
+// max_val = fmaxf(max_val, __shfl_xor_sync(0xFFFFFFFF, max_val, offset));
+//
+// lane 0 has max_val=3, lane 16 has max_val=7, offset=16:
+//
+// 1. shfl reads partner's max_val into a temp register (snapshot, not live reference)
+//    lane 0:  temp = 7   (from lane 16)
+//    lane 16: temp = 3   (from lane 0)
+// 2. fmaxf compares original max_val with temp
+//    lane 0:  fmaxf(3, 7) = 7
+//    lane 16: fmaxf(7, 3) = 7
+// 3. max_val is overwritten with result
+//    both lanes now have max_val = 7
+```
+
+The shuffle is a snapshot — both lanes read originals first, then both update. This is what makes the two-way fold correct.
+
+**When to use which:**
+
+```text
+__shfl_down_sync  →  only lane 0 needs result  (reduce then write once)
+__shfl_xor_sync   →  all lanes need result      (reduce then each thread uses value)
+                     avoids shared memory broadcast round-trip
+```
+
+For cross-warp coordination, shared memory is still the only option: lane 0 of each warp writes to `s_y[warpId]`, then warp 0 reads all entries after `__syncthreads()`.
 
 ## Warp Divergence
 
