@@ -116,3 +116,7 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-26] create | concepts/cuda-cheatsheet.md — hardware invariants, per-architecture specs (threads/SM, blocks/SM, shared mem), occupancy formula, block/grid sizing rules, GEMM parameter roles, common index formulas
 
 ## [2026-04-27] update | concepts/warp.md — expanded warp shuffle section: __shfl_xor_sync vs __shfl_down_sync, two-way fold mental model, why XOR gives same pairs as +offset, order of operations (snapshot semantics), when to use each
+
+## [2026-04-28] update | concepts/cuda-thread-hierarchy.md — inter-block communication section: HBM as only path, shared mem scoped per block (even on same SM), __syncthreads block-scope only, atomicAdd vs two-kernel tradeoffs
+
+## [2026-04-28] update | concepts/5-kernel-dev-reduce-operator.md — added SGEMV (one warp per row), inter-block communication via HBM, atomicAdd vs two-kernel pattern with tradeoff table

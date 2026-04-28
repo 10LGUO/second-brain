@@ -174,31 +174,55 @@ int idx = (blockDim.x * blockIdx.x + threadIdx.x) * 4;
 
 Blocks are isolated — no shared memory between them, no direct communication within a kernel launch. The hardware scheduler places blocks on Streaming Multiprocessors (SMs) in any order; there is no guarantee two blocks are alive simultaneously.
 
+**Inter-block communication always goes through HBM.** There is no direct register-to-register or shared-memory-to-shared-memory path between blocks. Shared memory is physically scoped to one block — even blocks resident on the same SM have completely separate shared memory pools invisible to each other:
+
+```text
+SM
+├── block A  →  shared mem A  (private — only A's threads can access)
+├── block B  →  shared mem B  (private — only B's threads can access)
+└── block C  →  shared mem C  (private — only C's threads can access)
+```
+
+This is a deliberate design choice — it lets the hardware scheduler place blocks on any SM in any order without tracking inter-block dependencies, which is what enables CUDA's massively parallel execution model.
+
+The consequence: every inter-block communication path goes through HBM:
+
+```text
+block A → write to HBM → block B reads from HBM
+```
+
+`__syncthreads()` only synchronizes threads **within the same block**. It has no effect across blocks.
+
 To coordinate across blocks, you have three options:
 
 **1. Atomics** — for simple accumulation into a single value:
 
 ```cuda
-if (tid == 0) atomicAdd(output, input_s[0]);
+if (laneId == 0) atomicAdd(output, sum);
 ```
 
-All blocks race to update `output`; `atomicAdd` serializes those writes safely. Simple but contention grows with block count.
+All blocks race to update `output`; `atomicAdd` serializes those writes safely. `*output` must be initialized to 0 before the kernel launches (`cudaMemset`). Simple but contention grows with block count — at large grid sizes, blocks queue up waiting for the atomic and the tail sits idle.
 
 **2. End the kernel, launch another** — the gap between two kernel launches is an implicit global sync point. All blocks from the first launch are guaranteed finished before the second launch begins:
 
 ```cuda
-// Stage 1: each block reduces its chunk → writes one partial sum per block
-reduce<<<grid_size, block_size>>>(input, partials, N);
+// allocate partial sums buffer in HBM — one float per block
+float* partial;
+cudaMalloc(&partial, grid_size * sizeof(float));
 
-// implicit global sync — all blocks done, partials[] fully written
+// Stage 1: each block reduces its chunk → writes one partial sum to HBM
+reduce_stage1<<<grid_size, block_size>>>(input, partial, N);
+// implicit global sync — all blocks done, partial[] fully written in HBM
 
 // Stage 2: one block reduces the partial sums → final answer
-reduce<<<1, block_size>>>(partials, output, grid_size);
+reduce_stage2<<<1, block_size>>>(partial, output, grid_size);
 ```
 
-Cleaner than atomics for large inputs: Stage 1 is fully parallel, Stage 2 does one cheap serial reduction. Tradeoff: two kernel launches and an intermediate `partials` buffer in HBM.
+Cleaner than atomics for large inputs: Stage 1 is fully parallel, Stage 2 reads only `grid_size` floats (tiny, e.g. 108 on A100). Tradeoff: one extra HBM buffer and two kernel launches.
 
-**3. Cooperative Groups** — a newer CUDA feature that allows grid-wide `__syncthreads()`-style barriers within a single kernel. Requires specific hardware support and constrains occupancy.
+The extra HBM round trip is unavoidable — `partial[]` must live in HBM because it is the only memory visible to all SMs simultaneously.
+
+**3. Cooperative Groups** — a newer CUDA feature that allows grid-wide `__syncthreads()`-style barriers within a single kernel. Requires specific hardware support and constrains occupancy. Threads still communicate via global memory — the feature just adds a convenient sync point around it.
 
 ## SM Assignment
 

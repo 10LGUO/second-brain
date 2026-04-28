@@ -249,6 +249,83 @@ val += tmp.x + tmp.y + tmp.z + tmp.w;
 
 ---
 
+## SGEMV — Matrix-Vector Reduction (one warp per row)
+
+Single-precision General Matrix-Vector Multiplication (SGEMV): `y = A × x`, A is M×K, x is K×1, y is M×1. Each output element `y[row]` is the dot product of one row of A with x — a reduction over K.
+
+```cuda
+dim3 grid(M);   // one block per output row
+dim3 block(32); // one warp per block
+
+__global__ void sgemv(float* A, float* x, float* y, int M, int K) {
+    int laneId = threadIdx.x % warpSize;
+    int row = blockIdx.x;
+    if (row >= M) return;
+
+    // Phase 1: each lane accumulates a partial dot product
+    // 32 lanes split K columns — lane i handles cols i, i+32, i+64, ...
+    float res = 0.0f;
+    for (int i = 0; i < CEIL(K, warpSize); i++) {
+        int col = i * warpSize + laneId;
+        res += (col < K) ? A[row * K + col] * x[col] : 0.0f;
+    }
+
+    // Phase 2: warp shuffle reduction — fold 32 partial sums into lane 0
+    for (int offset = warpSize >> 1; offset > 0; offset >>= 1)
+        res += __shfl_down_sync(0xFFFFFFFF, res, offset);
+
+    // Phase 3: lane 0 writes the final dot product
+    if (laneId == 0) y[row] = res;
+}
+```
+
+One warp per row parallelises the K dot product across 32 lanes, then reduces with warp shuffle. No shared memory needed — shuffle operates entirely within registers.
+
+---
+
+## Inter-Block Communication and HBM
+
+`__syncthreads()` only synchronises threads **within one block**. It has no effect across blocks.
+
+**All inter-block communication must go through HBM.** Shared memory is scoped to one block — even blocks resident on the same SM have completely separate, mutually invisible shared memory pools. There is no SM-wide shared memory.
+
+```text
+SM
+├── block A → shared mem A  (private to A)
+├── block B → shared mem B  (private to B)
+└── block C → shared mem C  (private to C)
+```
+
+Every inter-block communication pattern involves an HBM write + read:
+
+**Option 1 — atomicAdd:** each block's lane 0 atomically adds its partial sum to a single output location. Simple, but contention serialises blocks at large grid sizes.
+
+```cuda
+// output must be zeroed before launch: cudaMemset(output, 0, sizeof(float))
+if (laneId == 0) atomicAdd(output, sum);
+```
+
+**Option 2 — two-kernel:** Stage 1 writes partial sums to an HBM buffer; Stage 2 reduces the buffer. The kernel launch gap is an implicit global sync — all Stage 1 blocks are done before Stage 2 starts.
+
+```cuda
+float* partial;
+cudaMalloc(&partial, grid_size * sizeof(float));  // lives in HBM
+
+reduce_stage1<<<grid_size, block_size>>>(input, partial, N);
+// implicit global sync
+
+reduce_stage2<<<1, block_size>>>(partial, output, grid_size);
+```
+
+Stage 2 reads only `grid_size` floats (e.g. 108 on A100) — trivially cheap. The extra HBM buffer is unavoidable because HBM is the only memory visible to all SMs simultaneously.
+
+**Tradeoff:**
+
+```text
+atomicAdd    simple, no buffer, but serialises at large grid_size
+two-kernel   extra HBM allocation + 2 launches, but Stage 1 fully parallel
+```
+
 ## Related Concepts
 
 - [[simd-vectorization]]
