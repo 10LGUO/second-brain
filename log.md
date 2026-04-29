@@ -120,3 +120,7 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-28] update | concepts/cuda-thread-hierarchy.md — inter-block communication section: HBM as only path, shared mem scoped per block (even on same SM), __syncthreads block-scope only, atomicAdd vs two-kernel tradeoffs
 
 ## [2026-04-28] update | concepts/5-kernel-dev-reduce-operator.md — added SGEMV (one warp per row), inter-block communication via HBM, atomicAdd vs two-kernel pattern with tradeoff table
+
+## [2026-04-29] ingest | 11. GPU performance optimization codelab.pdf — profiling workflow, torch.profiler, nsys, ncu, NVTX, roofline model, multi-model training optimization
+
+## [2026-04-29] create | sources/gpu-perf-codelab.md
