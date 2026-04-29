@@ -124,3 +124,7 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-29] ingest | 11. GPU performance optimization codelab.pdf — profiling workflow, torch.profiler, nsys, ncu, NVTX, roofline model, multi-model training optimization
 
 ## [2026-04-29] create | sources/gpu-perf-codelab.md
+
+## [2026-04-29] ingest | BAGEL repo (bytedance-seed/BAGEL) — 14B MoT multimodal model, architecture, VRAM requirements, inference pipeline, optimization targets
+
+## [2026-04-29] create | sources/bagel.md

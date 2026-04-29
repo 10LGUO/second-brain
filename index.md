@@ -49,5 +49,6 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 
 - [CUDA SGEMM Optimization](sources/sgemm-readme.md) — Seven progressive SGEMM kernels: naive → shared memory tiling → 1D/2D thread tile → float4 → double buffer
 - [GPU Performance Optimization Codelab](sources/gpu-perf-codelab.md) — Profiling workflow: torch.profiler, nsys, ncu, NVTX markers, roofline model, multi-model training bottlenecks
+- [BAGEL](sources/bagel.md) — Bytedance 14B multimodal model (7B active MoT); architecture, VRAM requirements, inference pipeline, optimization targets
 
 ---
