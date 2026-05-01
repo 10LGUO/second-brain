@@ -128,3 +128,5 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-29] ingest | BAGEL repo (bytedance-seed/BAGEL) — 14B MoT multimodal model, architecture, VRAM requirements, inference pipeline, optimization targets
 
 ## [2026-04-29] create | sources/bagel.md
+
+## [2026-04-30] lint | 0 contradictions; 18 orphan pages (mostly duplicate-prefix files); 81 broken/missing wikilinks; index was 1% populated — rebuilt with all 60 concepts, 15 entities, 7 sources
