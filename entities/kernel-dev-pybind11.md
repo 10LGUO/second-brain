@@ -33,8 +33,8 @@ The document notes that pure C++ unit tests are the industry standard for produc
 
 ## Related Entities and Concepts
 
-- [[cuda-kernel-optimization]]
-- [[gpu-memory-hierarchy]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-gpu-memory-hierarchy]]
 
 ## Sources
 

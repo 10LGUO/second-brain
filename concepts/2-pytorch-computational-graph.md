@@ -53,13 +53,13 @@ to convert dynamic graphs into static, optimizable representations (TorchScript)
 
 ## Related Concepts
 
-- [[autograd]]
+- [[pytorch-autograd]]
 - [[pytorch-tensor]]
 - [[pytorch-nn-module]]
 
 ## Sources
 
-- [[2-pytorch.md]]
+- [[2-pytorch]]
 ```
 
 ---

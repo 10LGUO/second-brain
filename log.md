@@ -130,3 +130,5 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 ## [2026-04-29] create | sources/bagel.md
 
 ## [2026-04-30] lint | 0 contradictions; 18 orphan pages (mostly duplicate-prefix files); 81 broken/missing wikilinks; index was 1% populated — rebuilt with all 60 concepts, 15 entities, 7 sources
+
+## [2026-05-06] lint | Deleted 8 duplicate pages (prefixed vs canonical names); fixed ~150 broken wikilinks across 76 files via bulk slug remapping; added missing pytorch-framework to index; ~60 links remain broken (genuine missing pages: tensor-parallelism, data-parallelism, speculative-decoding, triton, etc.)

@@ -51,11 +51,11 @@ Framework operators (PyTorch, etc.) execute as separate kernels, each reading fr
 
 ## Related Concepts
 
-- [[operator-fusion]]
-- [[hbm-and-gpu-memory]]
-- [[simt-programming-model]]
-- [[mfu-model-flops-utilization]]
-- [[ping-pong-buffer]]
+- [[1-overview-operator-fusion]]
+- [[1-overview-hbm-high-bandwidth-memory]]
+- [[5-kernel-dev-simt-programming-model]]
+- [[1-overview-mfu-model-flops-utilization]]
+- [[5-kernel-dev-ping-pong-buffer]]
 
 ## Sources
 

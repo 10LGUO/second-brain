@@ -30,8 +30,8 @@ Zebu is cited as the most accurate method for measuring **compute utilization** 
 - Not accessible for standard GPU/CPU kernel developers
 
 ## Related Concepts
-- [[arithmetic-intensity]]
-- [[simd-programming-model]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[5-kernel-dev-simd-programming-model]]
 
 ## Sources
 - [[5-kernel-dev]]

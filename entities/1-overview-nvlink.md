@@ -20,14 +20,14 @@ NVLink is the physical interconnect over which NCCL collective operations run fo
 - Direct GPU-to-GPU communication (bypasses CPU and PCIe).
 - Much higher bandwidth than PCIe (e.g., NVLink 4.0: 900 GB/s bidirectional per GPU in NVSwitch configurations).
 - Enables efficient AllReduce, AllGather, and other collective operations within a node.
-- Used together with [[nccl]] for intra-node communication in distributed training.
+- Used together with [[1-overview-nccl]] for intra-node communication in distributed training.
 
 ## Related Entities and Concepts
 
-- [[nccl]]
-- [[ai-chip-architecture]]
-- [[compute-communication-overlap]]
-- [[llm-training-infra]]
+- [[1-overview-nccl]]
+- [[1-overview-ai-chip-architecture]]
+- [[1-overview-compute-communication-overlap]]
+- [[1-overview-llm-training-infra]]
 
 ## Sources
 

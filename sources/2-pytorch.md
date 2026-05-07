@@ -47,10 +47,10 @@ typically covered in such a document would include:
 
 ## Related Pages
 
-- [[pytorch]]
+- [[pytorch-framework]]
 - [[deep-learning]]
 - [[tensor]]
-- [[autograd]]
+- [[pytorch-autograd]]
 - [[neural-network]]
 
 ```text

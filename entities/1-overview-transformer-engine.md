@@ -24,10 +24,10 @@ TE represents the current state of the art for low-precision and overlap optimiz
 
 ## Related Entities and Concepts
 
-- [[megatron]]
-- [[compute-communication-overlap]]
-- [[operator-fusion]]
-- [[llm-training-infra]]
+- [[1-overview-megatron]]
+- [[1-overview-compute-communication-overlap]]
+- [[1-overview-operator-fusion]]
+- [[1-overview-llm-training-infra]]
 
 ## Sources
 

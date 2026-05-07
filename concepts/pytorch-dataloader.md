@@ -93,7 +93,7 @@ train_set, val_set = random_split(full_dataset, [50000, 10000])
 
 ## Sources
 
-- [[2-pytorch.md]] `[inferred — re-verify on re-ingestion]`
+- [[2-pytorch]] `[inferred — re-verify on re-ingestion]`
 
 ```text
 

@@ -114,7 +114,7 @@ Softmax is **bandwidth-bound** — arithmetic intensity is low (few FLOPs per by
 
 ## Related Concepts
 
-- [[layernorm]]
+- [[5-kernel-dev-layernorm]]
 - [[5-kernel-dev-reduce-operator]]
 - [[5-kernel-dev-arithmetic-intensity]]
 - [[cuda-thread-hierarchy]]

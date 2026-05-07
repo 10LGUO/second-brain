@@ -337,5 +337,5 @@ Kernel 7 (double buf):   overlap load K+1 with compute K, eliminate one __syncth
 
 ## Sources
 
-- [[CUDA_Kernel_Samples]] `sgemm/`
+- [[5-kernel-dev-cuda-kernel-samples]] `sgemm/`
 - [[sgemm-readme]]

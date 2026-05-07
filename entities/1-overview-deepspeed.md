@@ -24,10 +24,10 @@ DeepSpeed is identified as a must-master framework for LLM training infrastructu
 
 ## Related Entities and Concepts
 
-- [[megatron]]
-- [[nccl]]
-- [[llm-training-infra]]
-- [[transformer-engine]]
+- [[1-overview-megatron]]
+- [[1-overview-nccl]]
+- [[1-overview-llm-training-infra]]
+- [[1-overview-transformer-engine]]
 
 ## Sources
 

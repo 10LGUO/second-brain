@@ -34,9 +34,9 @@ SIMT (Single Instruction, Multiple Threads) and SIMD (Single Instruction, Multip
 
 ## Related Concepts
 
-- [[ai-chip-architecture]]
-- [[llm-training-infra]]
-- [[gpu-software-stack]]
+- [[1-overview-ai-chip-architecture]]
+- [[1-overview-llm-training-infra]]
+- [[1-overview-gpu-software-stack]]
 
 ## Sources
 

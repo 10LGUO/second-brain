@@ -96,16 +96,16 @@ At scale, hardware failures (GPU errors, network faults, storage failures) are n
 
 ### Software Frameworks
 
-- **[[pytorch]]:** The dominant research and production training framework. Supports FSDP, DDP, and integrates with libraries like DeepSpeed and Megatron.
-- **[[deepspeed]]:** Microsoft library implementing ZeRO optimizer, pipeline parallelism, and mixed precision. Widely used for large-scale training.
-- **[[megatron-lm]]:** NVIDIA's framework for tensor and pipeline parallelism, optimized for transformer training on NVIDIA hardware.
+- **[[pytorch-framework]]:** The dominant research and production training framework. Supports FSDP, DDP, and integrates with libraries like DeepSpeed and Megatron.
+- **[[1-overview-deepspeed]]:** Microsoft library implementing ZeRO optimizer, pipeline parallelism, and mixed precision. Widely used for large-scale training.
+- **[[1-overview-megatron]]:** NVIDIA's framework for tensor and pipeline parallelism, optimized for transformer training on NVIDIA hardware.
 - **[[jax]] / XLA:** Google's functional array computation framework. Used for TPU training and increasingly for GPU training. Strong support for compilation and sharding via `jax.sharding`.
 - **[[triton]]:** OpenAI's GPU kernel language enabling custom high-performance ops (e.g., FlashAttention) without writing raw CUDA.
-- **[[nccl]]:** NVIDIA's collective communication library; foundational for all GPU-distributed training.
+- **[[1-overview-nccl]]:** NVIDIA's collective communication library; foundational for all GPU-distributed training.
 
 ### Key Algorithmic Techniques
 
-- **[[flashattention]]:** Memory-efficient attention algorithm that reorders attention computation to minimize HBM reads/writes. Dramatically reduces activation memory and increases throughput for long sequences.
+- **[[1-overview-flash-attention]]:** Memory-efficient attention algorithm that reorders attention computation to minimize HBM reads/writes. Dramatically reduces activation memory and increases throughput for long sequences.
 - **[[gradient-checkpointing]]:** Trade compute for memory by recomputing activations during the backward pass.
 - **[[mixed-precision-training]]:** See precision section above.
 - **[[muon-optimizer]] / [[adam-optimizer]]:** Optimizer choices affect convergence and memory. Adam (AdamW) is standard; newer optimizers like Muon aim for better scaling.

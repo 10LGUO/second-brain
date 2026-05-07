@@ -55,7 +55,7 @@ GPUs are the dominant hardware platform for both training and inference of large
 - **PCIe vs. NVLink**: Inter-GPU communication bandwidth significantly impacts distributed training and inference performance.
 - **FLOPS vs. memory bandwidth**: Many operations in large models are memory-bandwidth-bound rather than compute-bound, making memory access patterns a key optimization target.
 
-Related: [[gpu-architecture]], [[cuda-programming-model]]
+Related: [[1-overview-gpu-software-hardware-architecture]], [[cuda-programming-model]]
 
 ---
 
@@ -98,11 +98,11 @@ Related: [[tensor-parallelism]], [[pipeline-parallelism]], [[data-parallelism]],
 At the lowest level, model computations are expressed as operators (kernels) that execute on GPU hardware:
 
 - **GEMM (General Matrix Multiplication)**: The core operation in linear layers and attention. Heavily optimized via cuBLAS and CUTLASS.
-- **Attention kernels**: Naive attention is quadratic in sequence length and memory-intensive. [[flash-attention]] fuses operations and tiles computation to stay within SRAM, drastically reducing HBM traffic.
+- **Attention kernels**: Naive attention is quadratic in sequence length and memory-intensive. [[1-overview-flash-attention]] fuses operations and tiles computation to stay within SRAM, drastically reducing HBM traffic.
 - **Fused kernels**: Combining multiple operations (e.g., LayerNorm + linear) into a single kernel reduces memory round-trips.
 - **Custom CUDA / Triton kernels**: Engineers write custom kernels when library implementations are suboptimal for specific shapes or access patterns.
 
-Related: [[flash-attention]], [[triton-lang]], [[cutlass]]
+Related: [[1-overview-flash-attention]], [[triton-lang]], [[cutlass]]
 
 ---
 
@@ -116,7 +116,7 @@ This lecture series focuses specifically on inference. Key challenges include:
 - **Quantization**: Reducing weight and/or activation precision (INT8, INT4, FP8) to reduce memory footprint and increase throughput, at the cost of potential accuracy degradation.
 - **Speculative decoding**: Using a small draft model to propose token sequences that are then verified by the large model in parallel, reducing latency.
 
-Related: [[kv-cache]], [[continuous-batching]], [[quantization]], [[speculative-decoding]]
+Related: [[1-overview-kv-cache]], [[continuous-batching]], [[quantization]], [[speculative-decoding]]
 
 ---
 
@@ -153,9 +153,9 @@ This lecture series covers the full stack of large model inference infrastructur
 
 ## Related Pages
 
-- [[gpu-architecture]]
-- [[flash-attention]]
-- [[kv-cache]]
+- [[1-overview-gpu-software-hardware-architecture]]
+- [[1-overview-flash-attention]]
+- [[1-overview-kv-cache]]
 - [[continuous-batching]]
 - [[quantization]]
 - [[speculative-decoding]]

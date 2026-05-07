@@ -24,7 +24,7 @@ Because these phases have different bottlenecks, running them on the same hardwa
 
 - Allows prefill and decode to run on hardware optimized for their respective bottlenecks.
 - Enables independent scaling: more prefill capacity for high-input-volume workloads, more decode capacity for high-output-volume workloads.
-- Improves [[slo]] metrics ([[ttft]] and [[tpot]]) by reducing interference between phases.
+- Improves [[1-overview-slo-metrics-ttft-tpot]] metrics ([[1-overview-slo-metrics-ttft-tpot]] and [[1-overview-slo-metrics-ttft-tpot]]) by reducing interference between phases.
 - Requires efficient **distributed KV cache** management: the KV cache generated during prefill must be transferred to the decode workers.
 
 ## Implementations
@@ -38,16 +38,16 @@ Both lmcache and Mooncake focus on efficiently managing and transferring the dis
 
 ## Related Concepts
 
-- [[large-model-infra]]
-- [[kv-cache]]
-- [[ttft]]
-- [[tpot]]
-- [[slo]]
+- [[1-overview-large-model-infra]]
+- [[1-overview-kv-cache]]
+- [[1-overview-slo-metrics-ttft-tpot]]
+- [[1-overview-slo-metrics-ttft-tpot]]
+- [[1-overview-slo-metrics-ttft-tpot]]
 
 ## Related Entities
 
-- [[vllm]]
-- [[sglang]]
+- [[1-overview-vllm]]
+- [[1-overview-sglang]]
 
 ## Sources
 

@@ -44,11 +44,11 @@ Mean and variance can be computed in a single pass by accumulating both Σx_i an
 - **Small-data re-partitioning:** When M < 12×64, threads are idle. When N is small, per-thread work is minimal. Proposed fix: split N across multiple threads (extreme case: one thread per SIMD width), use L2 for inter-thread reduce.
 
 ## Related Concepts
-- [[simd-programming-model]]
-- [[softmax]]
-- [[reduce-operator]]
-- [[ping-pong-buffer]]
-- [[arithmetic-intensity]]
+- [[5-kernel-dev-simd-programming-model]]
+- [[5-kernel-dev-softmax]]
+- [[5-kernel-dev-reduce-operator]]
+- [[5-kernel-dev-ping-pong-buffer]]
+- [[5-kernel-dev-arithmetic-intensity]]
 
 ## Sources
 - [[5-kernel-dev]]

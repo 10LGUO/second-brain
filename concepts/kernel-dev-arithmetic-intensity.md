@@ -37,7 +37,7 @@ The **Roofline Model** uses arithmetic intensity to locate a kernel's performanc
 
 **Target:** ≥ 80% utilization of whichever resource is the bottleneck.
 
-**Critical practice:** Must be able to compute arithmetic intensity theoretically for any operator — cannot rely solely on profiling tools (though tools like [[nsight]] must also be used).
+**Critical practice:** Must be able to compute arithmetic intensity theoretically for any operator — cannot rely solely on profiling tools (though tools like [[kernel-dev-nsight]] must also be used).
 
 ## Examples
 
@@ -47,12 +47,12 @@ The **Roofline Model** uses arithmetic intensity to locate a kernel's performanc
 
 ## Related Concepts
 
-- [[roofline-model]]
-- [[cuda-kernel-optimization]]
-- [[coalesced-memory-access]]
-- [[shared-memory-tiling]]
-- [[gpu-memory-hierarchy]]
-- [[gemm]]
+- [[kernel-dev-roofline-model]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-coalesced-memory-access]]
+- [[kernel-dev-shared-memory-tiling]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[cuda-gemm]]
 
 ## Sources
 

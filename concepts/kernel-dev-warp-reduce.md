@@ -58,10 +58,10 @@ Warp Reduce is the **foundational building block** for block-level and grid-leve
 
 ## Related Concepts
 
-- [[cuda-kernel-optimization]]
-- [[gpu-memory-hierarchy]]
-- [[bank-conflict]]
-- [[shared-memory-tiling]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[kernel-dev-bank-conflict]]
+- [[kernel-dev-shared-memory-tiling]]
 
 ## Sources
 

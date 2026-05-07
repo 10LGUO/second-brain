@@ -42,10 +42,10 @@ HBM (High Bandwidth Memory) is the high-speed, high-bandwidth off-chip memory st
 
 ## Related Concepts
 
-- [[gpu-software-hardware-architecture]]
-- [[large-model-infra]]
-- [[operator-development]]
-- [[nvlink]]
+- [[1-overview-gpu-software-hardware-architecture]]
+- [[1-overview-large-model-infra]]
+- [[1-overview-operator-development]]
+- [[1-overview-nvlink]]
 
 ## Sources
 

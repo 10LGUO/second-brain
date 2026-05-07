@@ -14,7 +14,7 @@ Find and report:
 
 4. **Missing concept/entity pages** — `[[wikilinks]]` that appear in page content but have no corresponding `.md` file.
 
-5. **Broken wikilink naming** — links whose slug doesn't match any canonical filename (e.g. `[[mfu]]` when the file is `1-overview-mfu-model-flops-utilization.md`).
+5. **Broken wikilink naming** — links whose slug doesn't match any canonical filename (e.g. `[[1-overview-mfu-model-flops-utilization]]` when the file is `1-overview-mfu-model-flops-utilization.md`).
 
 6. **Missing cross-references** — two pages that are clearly related but neither links to the other.
 

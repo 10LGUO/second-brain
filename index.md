@@ -67,6 +67,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [PyTorch Loss Function](concepts/pytorch-loss-function.md) — Cross-entropy, MSE, custom losses
 - [PyTorch Training Loop](concepts/pytorch-training-loop.md) — Forward, backward, optimizer step pattern
 - [Computational Graph](concepts/2-pytorch-computational-graph.md) — Dynamic graph construction in PyTorch
+- [PyTorch Framework](entities/pytorch-framework.md) — PyTorch deep learning framework overview
 
 ---
 

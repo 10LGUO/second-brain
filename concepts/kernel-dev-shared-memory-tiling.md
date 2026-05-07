@@ -29,7 +29,7 @@ This reduces HBM traffic by a factor proportional to the tile's reuse factor.
 
 - Reduces global memory access → improves bandwidth utilization.
 - Increases L2 hit rate (data loaded once per tile, reused many times).
-- Enables overlap with [[ping-pong-buffer]] for further latency hiding.
+- Enables overlap with [[5-kernel-dev-ping-pong-buffer]] for further latency hiding.
 - Also used for layout reorganization (e.g., transpose in shared memory) to fix coalescing or bank conflict issues.
 
 ## Constraints
@@ -46,13 +46,13 @@ This reduces HBM traffic by a factor proportional to the tile's reuse factor.
 
 ## Related Concepts
 
-- [[gpu-memory-hierarchy]]
-- [[cuda-kernel-optimization]]
-- [[bank-conflict]]
-- [[ping-pong-buffer]]
-- [[coalesced-memory-access]]
-- [[autotuning]]
-- [[gemm]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-bank-conflict]]
+- [[5-kernel-dev-ping-pong-buffer]]
+- [[kernel-dev-coalesced-memory-access]]
+- [[kernel-dev-autotuning]]
+- [[cuda-gemm]]
 
 ## Sources
 

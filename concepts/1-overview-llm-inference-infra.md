@@ -34,7 +34,7 @@ LLM inference infrastructure refers to the systems and frameworks used to serve 
 The key-value (KV) cache stores intermediate attention keys and values computed during prefill so they do not need to be recomputed during each decode step. It is the dominant consumer of GPU memory during inference.
 
 - **Capacity constraints**: KV cache size scales with batch size × sequence length × number of layers × hidden dimension. Memory pressure limits maximum batch size and context length.
-- **Paged attention**: Inspired by virtual memory, paged attention (as implemented in [[vllm]]) stores KV cache in non-contiguous memory blocks, reducing fragmentation and enabling higher effective batch sizes.
+- **Paged attention**: Inspired by virtual memory, paged attention (as implemented in [[1-overview-vllm]]) stores KV cache in non-contiguous memory blocks, reducing fragmentation and enabling higher effective batch sizes.
 - **Prefix caching**: Shared prompt prefixes can be cached and reused across requests, reducing redundant computation and TTFT for common system prompts.
 - **Offloading**: KV cache can be offloaded to CPU memory or SSDs when GPU memory is exhausted, at the cost of higher latency.
 
@@ -56,7 +56,7 @@ Challenges of PD separation include:
 ### Batching Strategies
 
 - **Static batching**: A fixed batch of requests is processed together. Simple but leads to wasted compute when requests finish at different times.
-- **Continuous batching** (iteration-level scheduling): Requests are added to and removed from the batch at each decode step. This dramatically improves GPU utilization and is the default in modern serving frameworks such as [[vllm]] and [[tgi]].
+- **Continuous batching** (iteration-level scheduling): Requests are added to and removed from the batch at each decode step. This dramatically improves GPU utilization and is the default in modern serving frameworks such as [[1-overview-vllm]] and [[tgi]].
 - **Chunked prefill**: Long prefill sequences are broken into smaller chunks interleaved with decode steps, reducing head-of-line blocking and improving TTFT for queued decode requests.
 
 ### Tensor Parallelism and Pipeline Parallelism
@@ -207,16 +207,16 @@ Comparing systems requires careful attention to workload assumptions; results ar
 
 ## Related Concepts
 
-- [[kv-cache]]
+- [[1-overview-kv-cache]]
 - [[paged-attention]]
 - [[speculative-decoding]]
 - [[tensor-parallelism]]
 - [[continuous-batching]]
-- [[pd-separation]]
+- [[1-overview-pd-separation]]
 - [[transformer-architecture]]
 - [[quantization]]
 - [[mixture-of-experts]]
-- [[flashattention]]
+- [[1-overview-flash-attention]]
 - [[chunked-prefill]]
 - [[radix-attention]]
 - [[ring-attention]]
@@ -225,7 +225,7 @@ Comparing systems requires careful attention to workload assumptions; results ar
 
 ## Related Entities and Projects
 
-- [[vllm]] — Open-source LLM serving engine; introduced paged attention and continuous batching.
+- [[1-overview-vllm]] — Open-source LLM serving engine; introduced paged attention and continuous batching.
 - [[tgi]] — HuggingFace Text Generation Inference server.
 - [[tensorrt-llm]] — NVIDIA's optimized inference library with quantization and fused kernel support.
 - [[distserve]] — Research system exploring disaggregated prefill-decode serving.
@@ -233,9 +233,9 @@ Comparing systems requires careful attention to workload assumptions; results ar
 - [[sarathi-serve]] — System introducing chunked prefill to reduce decode interference and improve SLO attainment.
 - [[orca]] — Early academic system proposing iteration-level continuous batching.
 - [[triton]] — OpenAI's GPU kernel programming language used to implement custom inference kernels.
-- [[flashattention]] — Memory-efficient attention kernel enabling longer contexts and higher throughput.
+- [[1-overview-flash-attention]] — Memory-efficient attention kernel enabling longer contexts and higher throughput.
 - [[deepspeed-inference]] — Microsoft's inference optimization library with ZeRO-Inference for large model serving.
 
 ## Sources
 
-- [[1-overview.md]]
+- [[1-overview]]

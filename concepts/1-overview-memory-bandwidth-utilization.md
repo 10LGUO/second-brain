@@ -9,7 +9,7 @@ sources: [1-overview.md]
 
 # Memory Bandwidth Utilization
 
-**Memory bandwidth utilization** (访存利用率) measures how efficiently a chip uses its available off-chip memory (HBM) bandwidth. It is a critical performance metric in AI inference and training, complementary to compute utilization ([[mfu-model-flops-utilization]]).
+**Memory bandwidth utilization** (访存利用率) measures how efficiently a chip uses its available off-chip memory (HBM) bandwidth. It is a critical performance metric in AI inference and training, complementary to compute utilization ([[1-overview-mfu-model-flops-utilization]]).
 
 ## Key Properties
 
@@ -18,7 +18,7 @@ sources: [1-overview.md]
   - Expressed as a percentage; e.g., 80% MBU on an A100 (2 TB/s peak) means ~1.6 TB/s is being used.
 - **Off-chip vs. on-chip**: MBU typically refers to off-chip DRAM (HBM) bandwidth. On-chip SRAM (shared memory, L1/L2 cache) accesses are not counted, as they are orders of magnitude faster and not the usual bottleneck.
 - **Memory-bound vs. compute-bound**: Operations are classified based on their arithmetic intensity (FLOPs per byte of memory access):
-  - **Memory-bound**: Low arithmetic intensity — the chip is waiting on memory, not compute. High MBU, low MFU. Examples: element-wise ops, [[layer-normalization]], autoregressive decoding.
+  - **Memory-bound**: Low arithmetic intensity — the chip is waiting on memory, not compute. High MBU, low MFU. Examples: element-wise ops, [[5-kernel-dev-layernorm]], autoregressive decoding.
   - **Compute-bound**: High arithmetic intensity — the chip is saturating compute units. Low MBU, high MFU. Examples: large matrix multiplications in training.
 - **Arithmetic intensity**: The key quantity determining which regime an operation falls in. Defined as FLOPs / bytes of memory traffic. The "roofline" crossover point separating memory-bound from compute-bound is: `Peak FLOPs / Peak Bandwidth` (measured in FLOPs/byte).
 
@@ -34,7 +34,7 @@ Because weights must be loaded from HBM on every forward pass, a model with bill
 
 ## Relationship to MFU
 
-MBU and [[mfu-model-flops-utilization]] are complementary but typically inversely dominant:
+MBU and [[1-overview-mfu-model-flops-utilization]] are complementary but typically inversely dominant:
 
 | Regime | MFU | MBU | Typical scenario |
 | --- | --- | --- | --- |
@@ -60,21 +60,21 @@ The **roofline model** provides a visual and analytical framework for understand
 
 - Well-optimized memory-bound kernels on modern GPUs (A100, H100) achieve **60–85% MBU**.
 - Poorly optimized kernels (e.g., naive PyTorch ops with excessive kernel launches, poor fusion) may achieve only 10–30% MBU.
-- [[flash-attention]] is a key example of a technique that dramatically improves effective MBU by reducing HBM reads/writes through tiling and on-chip reuse.
+- [[1-overview-flash-attention]] is a key example of a technique that dramatically improves effective MBU by reducing HBM reads/writes through tiling and on-chip reuse.
 - In production LLM serving, end-to-end MBU at the system level is typically lower than kernel-level MBU due to scheduling overhead, CPU-GPU synchronization, and tokenization latency.
 
 ## Optimization Techniques
 
 Several techniques improve memory bandwidth utilization or reduce the bandwidth required:
 
-- **Operator fusion**: Combining multiple elementwise or memory-bound ops into a single kernel reduces the number of HBM round-trips. See [[kernel-fusion]].
-- **[[flash-attention]]**: Rewrites the attention computation to tile the operation across SRAM, avoiding materialization of large intermediate attention matrices in HBM. FlashAttention-2 and FlashAttention-3 extend this with improved parallelism and warp specialization.
+- **Operator fusion**: Combining multiple elementwise or memory-bound ops into a single kernel reduces the number of HBM round-trips. See [[1-overview-operator-fusion]].
+- **[[1-overview-flash-attention]]**: Rewrites the attention computation to tile the operation across SRAM, avoiding materialization of large intermediate attention matrices in HBM. FlashAttention-2 and FlashAttention-3 extend this with improved parallelism and warp specialization.
 - **Quantization** ([[model-quantization]]): Reducing weight precision (e.g., FP16 → INT8 → INT4) directly reduces bytes loaded per parameter, effectively multiplying available bandwidth by the compression ratio. Weight-only quantization (e.g., GPTQ, AWQ) is particularly impactful for memory-bound inference since activations remain in higher precision while weights are dequantized on the fly.
 - **Speculative decoding**: Increases arithmetic intensity per decode step by batching candidate tokens, reducing the memory-bound nature of autoregressive generation. See [[speculative-decoding]].
 - **Continuous batching**: Aggregates requests to increase effective batch size, improving compute-to-memory ratio and amortizing weight loads across more concurrent users.
 - **Weight streaming / prefetching**: Overlapping HBM reads with computation to hide memory latency, particularly relevant on hardware with deep memory pipelines.
 - **Tensor parallelism**: Distributing weights across multiple devices, so each device loads a smaller fraction of weights per step; effective bandwidth scales with device count for weight-load-bound scenarios.
-- **Paged attention**: Manages KV-cache memory in non-contiguous pages (as in [[vllm]]), reducing memory fragmentation and enabling higher effective batch sizes, indirectly improving overall bandwidth utilization.
+- **Paged attention**: Manages KV-cache memory in non-contiguous pages (as in [[1-overview-vllm]]), reducing memory fragmentation and enabling higher effective batch sizes, indirectly improving overall bandwidth utilization.
 - **Activation checkpointing**: During training, trades recomputation for reduced memory bandwidth pressure on large activation tensors; can shift bottlenecks between compute and memory.
 
 ## Hardware Context
@@ -132,20 +132,20 @@ This illustrates why quantization has an outsized impact on memory-bound inferen
 
 ## Related Concepts
 
-- [[mfu-model-flops-utilization]]
-- [[flash-attention]]
-- [[kernel-fusion]]
+- [[1-overview-mfu-model-flops-utilization]]
+- [[1-overview-flash-attention]]
+- [[1-overview-operator-fusion]]
 - [[model-quantization]]
 - [[transformer-architecture]]
-- [[arithmetic-intensity]]
-- [[roofline-model]]
-- [[kv-cache]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[kernel-dev-roofline-model]]
+- [[1-overview-kv-cache]]
 - [[speculative-decoding]]
-- [[layer-normalization]]
-- [[vllm]]
+- [[5-kernel-dev-layernorm]]
+- [[1-overview-vllm]]
 - [[continuous-batching]]
 - [[tensor-parallelism]]
 
 ## Sources
 
-- [[1-overview.md]]
+- [[1-overview]]

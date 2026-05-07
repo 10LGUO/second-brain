@@ -46,7 +46,7 @@ HBM stacks DRAM dies vertically and connects them to the GPU die via a wide inte
 - **Lower power per bit** than GDDR due to shorter signal paths.
 - **Limited capacity:** Stacking constrains total VRAM (typically 40–192 GB), which is the binding constraint for maximum model size without offloading or parallelism.
 
-HBM capacity and bandwidth are often the first-order constraints when fitting and serving large models. See [[vram-management]] and [[kv-cache]].
+HBM capacity and bandwidth are often the first-order constraints when fitting and serving large models. See [[vram-management]] and [[1-overview-kv-cache]].
 
 ### On-Chip SRAM and Shared Memory
 
@@ -56,7 +56,7 @@ L1 cache and shared memory occupy the same physical SRAM bank per SM, with a sof
 - **Reductions:** Warp-level and block-level reductions used in softmax, layer norm, etc.
 - **Avoiding bank conflicts:** Careful padding and access patterns prevent serialization of reads.
 
-Efficient use of shared memory is the central technique in high-performance CUDA kernels and the foundational insight of [[flash-attention]].
+Efficient use of shared memory is the central technique in high-performance CUDA kernels and the foundational insight of [[1-overview-flash-attention]].
 
 ### Warp Execution and SIMT
 
@@ -114,7 +114,7 @@ Achievable FLOPS/s = min(Peak FLOPS/s, Bandwidth × Arithmetic Intensity)
 - **Arithmetic intensity** = FLOPs performed / bytes read from memory.
 - Large GEMMs (e.g., large batch matmuls) have high arithmetic intensity → compute-bound → Tensor Cores dominate.
 - Attention with small batch sizes, element-wise ops, layer norm → low arithmetic intensity → memory-bound → HBM bandwidth dominates.
-- Kernel fusion (e.g., [[flash-attention]]) raises effective arithmetic intensity by keeping intermediate values in SRAM rather than writing to HBM.
+- Kernel fusion (e.g., [[1-overview-flash-attention]]) raises effective arithmetic intensity by keeping intermediate values in SRAM rather than writing to HBM.
 
 ### Worked Example: GEMM vs. Softmax
 

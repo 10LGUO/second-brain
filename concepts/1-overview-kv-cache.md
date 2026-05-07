@@ -17,7 +17,7 @@ KV Cache (Key-Value Cache) is a fundamental optimization technique for LLM infer
 - **Why it matters:** Eliminates redundant computation during decoding, dramatically reducing TPOT (Time Per Output Token) and improving throughput.
 - **Memory cost:** KV cache consumes VRAM proportional to batch size × sequence length × number of layers × number of heads × head dimension × precision. Memory optimization of KV cache is a major area of inference infra work.
 - **Requires model understanding:** The inventors of KV cache needed to understand the transformer model architecture — cited in the source as an example of why infra engineers must understand algorithms.
-- **Distributed KV cache:** At scale, KV cache management becomes a distributed systems problem. See [[pd-separation]].
+- **Distributed KV cache:** At scale, KV cache management becomes a distributed systems problem. See [[1-overview-pd-separation]].
 
 ## Relationship to PD Separation
 
@@ -25,10 +25,10 @@ KV Cache (Key-Value Cache) is a fundamental optimization technique for LLM infer
 
 ## Related Concepts
 
-- [[pd-separation]]
-- [[llm-inference-infra]]
-- [[flash-attention]]
-- [[gpu-software-stack]]
+- [[1-overview-pd-separation]]
+- [[1-overview-llm-inference-infra]]
+- [[1-overview-flash-attention]]
+- [[1-overview-gpu-software-stack]]
 
 ## Sources
 

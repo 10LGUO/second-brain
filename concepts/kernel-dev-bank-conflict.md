@@ -39,11 +39,11 @@ Bank conflicts serialize shared memory accesses, which can dramatically reduce t
 
 ## Related Concepts
 
-- [[shared-memory-tiling]]
-- [[cuda-kernel-optimization]]
-- [[gpu-memory-hierarchy]]
-- [[warp-reduce]]
-- [[coalesced-memory-access]]
+- [[kernel-dev-shared-memory-tiling]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[kernel-dev-warp-reduce]]
+- [[kernel-dev-coalesced-memory-access]]
 
 ## Sources
 

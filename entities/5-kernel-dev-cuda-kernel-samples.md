@@ -27,8 +27,8 @@ Reference codebase for Lecture 5 operator development exercises, specifically fo
 
 ## Related Concepts
 
-- [[simt-programming-model]]
-- [[layernorm]]
+- [[5-kernel-dev-simt-programming-model]]
+- [[5-kernel-dev-layernorm]]
 
 ## Sources
 

@@ -17,15 +17,15 @@ PD Separation is a distributed LLM inference architecture pattern in which the *
 - **Architecture:** Dedicated prefill nodes handle prompt processing and generate the initial KV cache; dedicated decode nodes handle autoregressive generation, consuming the KV cache.
 - **Distributed KV cache:** A critical component — KV cache generated on prefill nodes must be efficiently transferred to and managed on decode nodes. This is a major distributed systems engineering challenge.
 - **Implementations:**
-  - [[vllm]] + **lmcache**: lmcache is vLLM's PD-separation component focused on distributed KV cache management.
-  - [[sglang]] + **Mooncake**: Mooncake is SGLang's PD-separation component with the same focus.
+  - [[1-overview-vllm]] + **lmcache**: lmcache is vLLM's PD-separation component focused on distributed KV cache management.
+  - [[1-overview-sglang]] + **Mooncake**: Mooncake is SGLang's PD-separation component with the same focus.
 
 ## Related Concepts
 
-- [[kv-cache]]
-- [[llm-inference-infra]]
-- [[vllm]]
-- [[sglang]]
+- [[1-overview-kv-cache]]
+- [[1-overview-llm-inference-infra]]
+- [[1-overview-vllm]]
+- [[1-overview-sglang]]
 
 ## Sources
 

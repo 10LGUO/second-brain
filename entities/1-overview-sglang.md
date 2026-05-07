@@ -9,7 +9,7 @@ sources: [1-overview.md]
 
 # SGLang
 
-SGLang is a mainstream LLM inference engine and one of the two primary inference frameworks (alongside [[vllm]]) that AI infra engineers must master. It is particularly notable for its structured generation capabilities and its PD separation component, Mooncake.
+SGLang is a mainstream LLM inference engine and one of the two primary inference frameworks (alongside [[1-overview-vllm]]) that AI infra engineers must master. It is particularly notable for its structured generation capabilities and its PD separation component, Mooncake.
 
 ## Why It Matters to This Wiki
 
@@ -23,7 +23,7 @@ SGLang represents the current convergence of LLM inference framework technology 
 
 ## PD Separation Component
 
-- **Mooncake:** SGLang's [[prefill-decode-separation]] component; focuses on distributed [[kv-cache]] management between prefill and decode workers.
+- **Mooncake:** SGLang's [[1-overview-prefill-decode-separation]] component; focuses on distributed [[1-overview-kv-cache]] management between prefill and decode workers.
 
 ## Skill Classification
 
@@ -32,17 +32,17 @@ SGLang represents the current convergence of LLM inference framework technology 
 
 ## Related Entities
 
-- [[vllm]]
-- [[megatron]]
-- [[nccl]]
-- [[flash-attention]]
+- [[1-overview-vllm]]
+- [[1-overview-megatron]]
+- [[1-overview-nccl]]
+- [[1-overview-flash-attention]]
 
 ## Related Concepts
 
-- [[large-model-infra]]
-- [[prefill-decode-separation]]
-- [[kv-cache]]
-- [[inference-latency-metrics]]
+- [[1-overview-large-model-infra]]
+- [[1-overview-prefill-decode-separation]]
+- [[1-overview-kv-cache]]
+- [[1-overview-slo-metrics-ttft-tpot]]
 
 ## Sources
 

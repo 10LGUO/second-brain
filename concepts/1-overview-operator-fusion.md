@@ -22,7 +22,7 @@ Operator fusion is a GPU performance optimization technique that merges multiple
 
 ## Key Example
 
-- **[[flash-attention]]** is a famous example of operator fusion applied to the attention mechanism — it fuses the QK^T matmul, softmax, and AV matmul into a single kernel to avoid materializing the full attention matrix in HBM.
+- **[[1-overview-flash-attention]]** is a famous example of operator fusion applied to the attention mechanism — it fuses the QK^T matmul, softmax, and AV matmul into a single kernel to avoid materializing the full attention matrix in HBM.
 
 ## Variants
 
@@ -31,12 +31,12 @@ Operator fusion is a GPU performance optimization technique that merges multiple
 
 ## Related Concepts
 
-- [[gpu-software-stack]]
-- [[ai-chip-architecture]]
-- [[compute-communication-overlap]]
-- [[llm-training-infra]]
-- [[llm-inference-infra]]
-- [[flash-attention]]
+- [[1-overview-gpu-software-stack]]
+- [[1-overview-ai-chip-architecture]]
+- [[1-overview-compute-communication-overlap]]
+- [[1-overview-llm-training-infra]]
+- [[1-overview-llm-inference-infra]]
+- [[1-overview-flash-attention]]
 
 ## Sources
 

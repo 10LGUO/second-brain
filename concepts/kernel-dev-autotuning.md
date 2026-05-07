@@ -32,16 +32,16 @@ CUDA GEMM operators are typically written as **C++ templates** with tile sizes a
 
 ## Relationship to Development Workflow
 
-In the SJTU project's development workflow, after establishing correctness, autotuning is used to explore the optimization space efficiently, complementing manual analysis with the [[roofline-model]] and [[nsight]] profiling.
+In the SJTU project's development workflow, after establishing correctness, autotuning is used to explore the optimization space efficiently, complementing manual analysis with the [[kernel-dev-roofline-model]] and [[kernel-dev-nsight]] profiling.
 
 ## Related Concepts
 
-- [[cuda-kernel-optimization]]
-- [[shared-memory-tiling]]
-- [[ping-pong-buffer]]
-- [[gemm]]
-- [[roofline-model]]
-- [[arithmetic-intensity]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-shared-memory-tiling]]
+- [[5-kernel-dev-ping-pong-buffer]]
+- [[cuda-gemm]]
+- [[kernel-dev-roofline-model]]
+- [[5-kernel-dev-arithmetic-intensity]]
 
 ## Sources
 

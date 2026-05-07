@@ -30,10 +30,10 @@ These nine techniques must be fully mastered by GPU operator developers and are 
 - **Two targets:** Compute utilization rate and bandwidth utilization rate.
 - **Decision process:**
   1. Compute the operator's **arithmetic intensity** (flops / bytes).
-  2. Compare against the hardware's **balance point** ([[roofline-model]]).
+  2. Compare against the hardware's **balance point** ([[kernel-dev-roofline-model]]).
   3. Determine if the operator is **bandwidth-bound** or **compute-bound**.
   4. Optimize the bottleneck → target: **≥ 80% utilization**.
-- Theoretical calculation of these metrics is required knowledge — profiling tools ([[nsight]]) must also be mastered.
+- Theoretical calculation of these metrics is required knowledge — profiling tools ([[kernel-dev-nsight]]) must also be mastered.
 
 ## Block and Thread Partitioning
 
@@ -100,17 +100,17 @@ These techniques are not independent and must be jointly considered:
 
 ## Related Concepts
 
-- [[gpu-memory-hierarchy]]
-- [[shared-memory-tiling]]
-- [[warp-reduce]]
-- [[coalesced-memory-access]]
-- [[bank-conflict]]
-- [[ping-pong-buffer]]
-- [[register-spill]]
-- [[arithmetic-intensity]]
-- [[roofline-model]]
-- [[autotuning]]
-- [[gemm]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[kernel-dev-shared-memory-tiling]]
+- [[kernel-dev-warp-reduce]]
+- [[kernel-dev-coalesced-memory-access]]
+- [[kernel-dev-bank-conflict]]
+- [[5-kernel-dev-ping-pong-buffer]]
+- [[kernel-dev-register-spill]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[kernel-dev-roofline-model]]
+- [[kernel-dev-autotuning]]
+- [[cuda-gemm]]
 
 ## Sources
 

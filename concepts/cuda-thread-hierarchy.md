@@ -231,9 +231,9 @@ The GPU hardware scheduler distributes blocks across SMs automatically. An SM ca
 ## Related Concepts
 
 - [[warp]]
-- [[simt-programming-model]]
+- [[5-kernel-dev-simt-programming-model]]
 - [[cuda-host-device-memory]]
-- [[arithmetic-intensity]]
+- [[5-kernel-dev-arithmetic-intensity]]
 - [[cuda-launch-config]]
 
 ## Sources

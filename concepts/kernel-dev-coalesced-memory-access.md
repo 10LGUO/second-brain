@@ -48,10 +48,10 @@ Coalesced access also improves L2 cache utilization: a loaded 128-byte cache lin
 
 ## Related Concepts
 
-- [[gpu-memory-hierarchy]]
-- [[cuda-kernel-optimization]]
-- [[shared-memory-tiling]]
-- [[bank-conflict]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-shared-memory-tiling]]
+- [[kernel-dev-bank-conflict]]
 
 ## Sources
 

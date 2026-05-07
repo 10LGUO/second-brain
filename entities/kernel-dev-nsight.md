@@ -24,24 +24,24 @@ Nsight is the essential measurement tool for GPU operator development. The SJTU 
 - Used to **identify performance bottlenecks** after an initial correct implementation is produced.
 - Measures actual utilization (compute utilization, bandwidth utilization) against theoretical roofline limits.
 - Guides the iterative optimization process: measure → identify bottleneck → apply technique → measure again.
-- Must be used **alongside** theoretical analysis ([[arithmetic-intensity]], [[roofline-model]]) — theoretical understanding is necessary to interpret profiling results.
+- Must be used **alongside** theoretical analysis ([[5-kernel-dev-arithmetic-intensity]], [[kernel-dev-roofline-model]]) — theoretical understanding is necessary to interpret profiling results.
 
 ## Key Capabilities in Operator Development Context
 
 - Report actual memory bandwidth utilization vs. peak.
 - Report compute throughput vs. peak.
-- Identify [[register-spill]] via local memory traffic metrics.
-- Identify [[bank-conflict]] via shared memory bank conflict counters.
-- Measure [[coalesced-memory-access]] efficiency via L2 sector hit/miss rates and global load/store efficiency.
+- Identify [[kernel-dev-register-spill]] via local memory traffic metrics.
+- Identify [[kernel-dev-bank-conflict]] via shared memory bank conflict counters.
+- Measure [[kernel-dev-coalesced-memory-access]] efficiency via L2 sector hit/miss rates and global load/store efficiency.
 - Show occupancy, active warp counts, and stall reasons per instruction.
 
 ## Related Entities and Concepts
 
-- [[cuda-kernel-optimization]]
-- [[roofline-model]]
-- [[arithmetic-intensity]]
-- [[register-spill]]
-- [[bank-conflict]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-roofline-model]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[kernel-dev-register-spill]]
+- [[kernel-dev-bank-conflict]]
 
 ## Sources
 

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../infra_playground/CUDA_Kernel_Samples"
+		},
+		{
+			"path": "../Bagel"
+		}
+	],
+	"settings": {}
+}

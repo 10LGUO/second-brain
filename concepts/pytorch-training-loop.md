@@ -84,7 +84,7 @@ with torch.no_grad():                      # no gradient tracking needed
 
 ## Sources
 
-- [[2-pytorch.md]] `[inferred — re-verify on re-ingestion]`
+- [[2-pytorch]] `[inferred — re-verify on re-ingestion]`
 
 ```text
 

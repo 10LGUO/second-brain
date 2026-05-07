@@ -50,18 +50,18 @@ Only **Shared Memory** and **Registers** are directly controllable in kernel cod
 
 - **Register spill** to local memory (global memory) is a severe performance hazard — avoid over-unrolling loops.
 - Shared memory is on-chip and fast but scarce; allocation decisions directly affect how many blocks can reside on an SM simultaneously (**occupancy**).
-- The memory hierarchy is the central reason why techniques like [[shared-memory-tiling]], [[coalesced-memory-access]], and [[ping-pong-buffer]] exist.
+- The memory hierarchy is the central reason why techniques like [[kernel-dev-shared-memory-tiling]], [[kernel-dev-coalesced-memory-access]], and [[5-kernel-dev-ping-pong-buffer]] exist.
 
 ## Related Concepts
 
-- [[cuda-kernel-optimization]]
-- [[shared-memory-tiling]]
-- [[coalesced-memory-access]]
-- [[register-spill]]
-- [[bank-conflict]]
-- [[ping-pong-buffer]]
-- [[arithmetic-intensity]]
-- [[roofline-model]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-shared-memory-tiling]]
+- [[kernel-dev-coalesced-memory-access]]
+- [[kernel-dev-register-spill]]
+- [[kernel-dev-bank-conflict]]
+- [[5-kernel-dev-ping-pong-buffer]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[kernel-dev-roofline-model]]
 
 ## Sources
 

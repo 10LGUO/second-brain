@@ -30,7 +30,7 @@ The hardware implementation of SIMT is the **[[warp]]** — a group of 32 thread
 
 ## Contrast with SIMD
 
-See [[simd-programming-model]] for a detailed comparison table.
+See [[5-kernel-dev-simd-programming-model]] for a detailed comparison table.
 
 ## Special Function Units (SFU)
 
@@ -38,10 +38,10 @@ GPUs contain dedicated Special Function Units (SFUs) for transcendental function
 
 ## Related Concepts
 
-- [[simd-programming-model]]
+- [[5-kernel-dev-simd-programming-model]]
 - [[warp]]
-- [[arithmetic-intensity]]
-- [[ping-pong-buffer]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[5-kernel-dev-ping-pong-buffer]]
 
 ## Sources
 

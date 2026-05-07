@@ -24,7 +24,7 @@ Under the von Neumann architecture perspective used in AI infra:
 ## How It Works
 
 - Computation and communication are dispatched to separate hardware units (compute cores vs. NVLink/network interconnects) and issued asynchronously (e.g., via different CUDA streams).
-- While the GPU computes on one partition of the data, it simultaneously sends/receives another partition's activations or gradients over [[nvlink]] or InfiniBand.
+- While the GPU computes on one partition of the data, it simultaneously sends/receives another partition's activations or gradients over [[1-overview-nvlink]] or InfiniBand.
 - Synchronization only occurs at necessary dependency points.
 
 ## Variants and Terminology
@@ -36,7 +36,7 @@ Under the von Neumann architecture perspective used in AI infra:
 
 - Dominant optimization direction in current large-scale LLM training.
 - Much of the complexity in frameworks like Megatron and DeepSpeed is devoted to implementing correct and efficient compute-communication overlap.
-- Distributed communication libraries ([[nccl]]) are a mandatory skill for infra engineers specifically because of compute-communication overlap work.
+- Distributed communication libraries ([[1-overview-nccl]]) are a mandatory skill for infra engineers specifically because of compute-communication overlap work.
 
 ## Speedup Ratio Impact
 
@@ -51,11 +51,11 @@ Speedup ratio = Multi-card performance / Single-card performance
 
 ## Related Concepts
 
-- [[large-model-infra]]
-- [[gpu-software-hardware-architecture]]
+- [[1-overview-large-model-infra]]
+- [[1-overview-gpu-software-hardware-architecture]]
 - [[speedup-ratio]]
-- [[operator-development]]
-- [[hbm-high-bandwidth-memory]]
+- [[1-overview-operator-development]]
+- [[1-overview-hbm-high-bandwidth-memory]]
 
 ## Sources
 

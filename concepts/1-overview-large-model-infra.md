@@ -136,8 +136,8 @@ Inference introduces different constraints from training:
 
 ## Key Frameworks and Tools
 
-- **[[megatron-lm]]**: NVIDIA's library for efficient tensor and pipeline parallelism; widely used for large-scale pre-training runs on GPU clusters. Provides reference implementations of 3D parallelism and sequence parallelism.
-- **[[deepspeed]]**: Microsoft's library implementing ZeRO optimizer stages (1/2/3), pipeline parallelism, and inference optimizations including DeepSpeed-Inference and DeepSpeed-FastGen.
+- **[[1-overview-megatron]]**: NVIDIA's library for efficient tensor and pipeline parallelism; widely used for large-scale pre-training runs on GPU clusters. Provides reference implementations of 3D parallelism and sequence parallelism.
+- **[[1-overview-deepspeed]]**: Microsoft's library implementing ZeRO optimizer stages (1/2/3), pipeline parallelism, and inference optimizations including DeepSpeed-Inference and DeepSpeed-FastGen.
 - **[[pytorch-fsdp]]**: PyTorch's native fully sharded data parallelism, offering ZeRO-3-equivalent sharding with tight integration into the PyTorch ecosystem.
-- **[[flashattention]]**: Memory-efficient exact attention kernel by Tri Dao et al.; now standard in most training and inference stacks. FlashAttention-2 and FlashAttention-3 extend support to newer hardware and improve parallelism.
+- **[[1-overview-flash-attention]]**: Memory-efficient exact attention kernel by Tri Dao et al.; now standard in most training and inference stacks. FlashAttention-2 and FlashAttention-3 extend support to newer hardware and improve parallelism.
 - **[[v

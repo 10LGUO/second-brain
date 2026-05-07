@@ -51,9 +51,9 @@ The ping-pong buffer optimization was identified as an enhancement to the SIMD r
 
 ## Related Concepts
 
-- [[simd-programming-model]]
-- [[simt-programming-model]]
-- [[arithmetic-intensity]]
+- [[5-kernel-dev-simd-programming-model]]
+- [[5-kernel-dev-simt-programming-model]]
+- [[5-kernel-dev-arithmetic-intensity]]
 
 ## Sources
 

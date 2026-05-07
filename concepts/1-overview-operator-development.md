@@ -34,7 +34,7 @@ Operator code has two parts:
 
 - Operator development is strongly related to compiler development.
 - Understanding the compiler makes the entire software stack transparent.
-- For domestic (non-NVIDIA) chip developers, compilers are especially critical because they significantly affect operator behavior and because the programming model (often [[simd]] vs. [[simt]]) differs from NVIDIA's.
+- For domestic (non-NVIDIA) chip developers, compilers are especially critical because they significantly affect operator behavior and because the programming model (often [[5-kernel-dev-simd-programming-model]] vs. [[5-kernel-dev-simt-programming-model]]) differs from NVIDIA's.
 
 ## Key Tools and Abstractions
 
@@ -54,10 +54,10 @@ From the full-stack infra competency table:
 
 ## Related Concepts
 
-- [[gpu-software-hardware-architecture]]
-- [[large-model-infra]]
-- [[compute-communication-overlap]]
-- [[precision-convergence]]
+- [[1-overview-gpu-software-hardware-architecture]]
+- [[1-overview-large-model-infra]]
+- [[1-overview-compute-communication-overlap]]
+- [[1-overview-precision-convergence]]
 
 ## Sources
 

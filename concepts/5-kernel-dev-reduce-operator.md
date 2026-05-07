@@ -9,7 +9,7 @@ sources: [5-kernel-dev.md]
 
 # Reduce Operator
 
-A reduce operator aggregates all elements of a tensor (or a slice thereof) into a single scalar value using an associative operation, most commonly summation. It is a foundational primitive used inside [[layernorm]], [[softmax]], attention, and many other operators.
+A reduce operator aggregates all elements of a tensor (or a slice thereof) into a single scalar value using an associative operation, most commonly summation. It is a foundational primitive used inside [[5-kernel-dev-layernorm]], [[5-kernel-dev-softmax]], attention, and many other operators.
 
 ## Implementations (Progressive Optimization)
 
@@ -108,7 +108,7 @@ float reduce_parallel(const float* data, int n) {
 
 ### 4. Online / Welford-Style Numerically Stable Reduction
 
-Plain summation of large arrays of floats suffers from catastrophic cancellation. Kahan compensated summation or Welford's online algorithm can be used when numerical accuracy matters (e.g., computing variance inside [[layernorm]]).
+Plain summation of large arrays of floats suffers from catastrophic cancellation. Kahan compensated summation or Welford's online algorithm can be used when numerical accuracy matters (e.g., computing variance inside [[5-kernel-dev-layernorm]]).
 
 ```cpp
 float reduce_kahan(const float* data, int n) {
@@ -144,15 +144,15 @@ float reduce_kahan(const float* data, int n) {
 
 - **Memory bandwidth bound:** For large tensors, the bottleneck is reading from RAM/cache, not arithmetic. Ensure data is contiguous and cache-aligned (64-byte aligned for AVX2).
 - **Accumulator count:** Using 4–8 independent accumulators is typically optimal on modern OOO CPUs to saturate FP pipelines.
-- **Fused kernels:** Wherever possible, fold the reduce into an adjacent operator (e.g., compute mean and variance in a single pass for [[layernorm]]) to halve memory traffic.
+- **Fused kernels:** Wherever possible, fold the reduce into an adjacent operator (e.g., compute mean and variance in a single pass for [[5-kernel-dev-layernorm]]) to halve memory traffic.
 - **Floating-point associativity:** Compilers will not reorder FP additions by default (`-ffast-math` enables this). Explicit unrolling with multiple accumulators is the portable alternative.
 
 ---
 
 ## Role in Larger Operators
 
-- **[[layernorm]]** – requires mean (sum reduce) and variance (sum-of-squares reduce) over the hidden dimension
-- **[[softmax]]** – requires max reduce (for numerical shift) and sum reduce (for normalization denominator)
+- **[[5-kernel-dev-layernorm]]** – requires mean (sum reduce) and variance (sum-of-squares reduce) over the hidden dimension
+- **[[5-kernel-dev-softmax]]** – requires max reduce (for numerical shift) and sum reduce (for normalization denominator)
 - **Attention** – row-wise softmax involves per-row reduce operations over sequence-length dimension
 - **[[cross-entropy-loss]]** – requires LogSumExp over the vocabulary dimension
 
@@ -328,11 +328,11 @@ two-kernel   extra HBM allocation + 2 launches, but Stage 1 fully parallel
 
 ## Related Concepts
 
-- [[simd-vectorization]]
-- [[memory-bandwidth]]
-- [[layernorm]]
-- [[softmax]]
-- [[operator-fusion]]
+- [[5-kernel-dev-simd-programming-model]]
+- [[1-overview-hbm-high-bandwidth-memory]]
+- [[5-kernel-dev-layernorm]]
+- [[5-kernel-dev-softmax]]
+- [[1-overview-operator-fusion]]
 - [[parallelism]]
 
 ## Sources

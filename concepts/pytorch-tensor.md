@@ -14,7 +14,7 @@ sources: [2-pytorch.md]
 A **PyTorch Tensor** (`torch.Tensor`) is the fundamental n-dimensional array data
 structure in [[pytorch-framework]]. It is analogous to NumPy's `ndarray` but with
 two critical additions: it can reside on a GPU for accelerated computation, and it
-can participate in automatic differentiation via [[autograd]].
+can participate in automatic differentiation via [[pytorch-autograd]].
 
 ## Key Properties
 
@@ -74,13 +74,13 @@ tensor = torch.from_numpy(arr)
 
 ## Related Concepts
 
-- [[autograd]] — gradient tracking is built on top of tensors
-- [[neural-network-module]] — layers operate on tensors
-- [[gpu-acceleration]] — tensors move to GPU via `.to(device)`
+- [[pytorch-autograd]] — gradient tracking is built on top of tensors
+- [[pytorch-nn-module]] — layers operate on tensors
+- [[1-overview-gpu-software-hardware-architecture]] — tensors move to GPU via `.to(device)`
 
 ## Sources
 
-- [[2-pytorch.md]] `[inferred — re-verify on re-ingestion]`
+- [[2-pytorch]] `[inferred — re-verify on re-ingestion]`
 
 ```text
 

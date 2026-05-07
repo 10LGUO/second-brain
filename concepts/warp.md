@@ -10,7 +10,7 @@ sources: [5-kernel-dev.md]
 
 # Warp
 
-A **warp** is the fundamental hardware execution unit on NVIDIA GPUs. It consists of 32 threads that are always scheduled and executed together — when the GPU issues an instruction, it issues it to all 32 threads in a warp simultaneously. This is the hardware implementation of the [[simt-programming-model]].
+A **warp** is the fundamental hardware execution unit on NVIDIA GPUs. It consists of 32 threads that are always scheduled and executed together — when the GPU issues an instruction, it issues it to all 32 threads in a warp simultaneously. This is the hardware implementation of the [[5-kernel-dev-simt-programming-model]].
 
 ## Key Properties
 
@@ -282,12 +282,12 @@ If threads within a warp take different branches (`if`/`else`), the warp execute
 
 ## Related Concepts
 
-- [[simt-programming-model]]
+- [[5-kernel-dev-simt-programming-model]]
 - [[cuda-thread-hierarchy]]
 - [[cuda-host-device-memory]]
-- [[arithmetic-intensity]]
+- [[5-kernel-dev-arithmetic-intensity]]
 - [[5-kernel-dev-ping-pong-buffer]]
-- [[operator-development]]
+- [[1-overview-operator-development]]
 
 ## Sources
 

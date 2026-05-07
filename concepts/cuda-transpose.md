@@ -195,4 +195,4 @@ Since a warp issues memory transactions collectively, whether 32 accesses cost 1
 
 ## Sources
 
-- [[CUDA_Kernel_Samples]] `transpose/transpose.cu`
+- [[5-kernel-dev-cuda-kernel-samples]] `transpose/transpose.cu`

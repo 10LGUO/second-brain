@@ -37,7 +37,7 @@ Register spill dramatically degrades performance because:
 
 ## Detection and Mitigation
 
-- **Detection:** Use `--ptxas-options=-v` in nvcc to see register and local memory usage per kernel; [[nsight]] profiler shows local memory traffic.
+- **Detection:** Use `--ptxas-options=-v` in nvcc to see register and local memory usage per kernel; [[kernel-dev-nsight]] profiler shows local memory traffic.
 - **Mitigation:**
   - Reduce per-thread live variable count.
   - Limit loop unrolling (the document explicitly warns against over-unrolling).
@@ -46,9 +46,9 @@ Register spill dramatically degrades performance because:
 
 ## Related Concepts
 
-- [[gpu-memory-hierarchy]]
-- [[cuda-kernel-optimization]]
-- [[autotuning]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-autotuning]]
 
 ## Sources
 

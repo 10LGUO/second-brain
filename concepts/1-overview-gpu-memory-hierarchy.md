@@ -33,7 +33,7 @@ The GPU memory system is divided into multiple levels extending outward from the
 - **Persistence:** Lifetime of the thread block
 - **Key concept — bank conflicts:** Shared memory is divided into 32 banks (on modern NVIDIA GPUs). When multiple threads in a warp access the same bank simultaneously (but different addresses), the accesses are serialized, reducing effective bandwidth. Padding arrays or restructuring access patterns can eliminate bank conflicts.
 - **Configurable split:** On many architectures (Volta, Turing, Ampere, Hopper), the SM has a unified data cache that can be partitioned between L1 cache and shared memory using `cudaFuncSetAttribute` with `cudaFuncAttributePreferredSharedMemoryCarveout`.
-- **Related concept:** [[warp-execution]] — the warp scheduler benefits heavily from low-latency shared memory to hide arithmetic latency.
+- **Related concept:** [[warp]] — the warp scheduler benefits heavily from low-latency shared memory to hide arithmetic latency.
 
 ---
 
@@ -71,7 +71,7 @@ The GPU memory system is divided into multiple levels extending outward from the
 - **Bandwidth:** NVLink 4.0 (H100): 900 GB/s bidirectional per GPU; NVSwitch fabric in DGX H100: up to 3.6 TB/s all-to-all
 - **Latency:** Higher than local device memory; typically adds ~1–2 µs over baseline
 - **Persistence:** As long as the peer-access mapping is established (`cudaDeviceEnablePeerAccess`)
-- **Notes:** NVLink bypasses PCIe, providing dramatically higher bandwidth for collective operations (AllReduce, AllGather) used in distributed training. Related concept: [[nvlink]].
+- **Notes:** NVLink bypasses PCIe, providing dramatically higher bandwidth for collective operations (AllReduce, AllGather) used in distributed training. Related concept: [[1-overview-nvlink]].
 
 ---
 
@@ -110,7 +110,7 @@ Global memory transactions are served in 128-byte cache lines. When threads in a
 
 ### Occupancy and the Latency Hiding Model
 
-GPUs hide memory latency by context-switching between warps. Higher occupancy (more active warps per SM) gives the warp scheduler more candidates to switch to while waiting for memory. However, occupancy is constrained by shared memory usage and register count per thread. The [[roofline-model]] provides a framework for reasoning about whether a kernel is compute-bound or memory-bandwidth-bound.
+GPUs hide memory latency by context-switching between warps. Higher occupancy (more active warps per SM) gives the warp scheduler more candidates to switch to while waiting for memory. However, occupancy is constrained by shared memory usage and register count per thread. The [[kernel-dev-roofline-model]] provides a framework for reasoning about whether a kernel is compute-bound or memory-bandwidth-bound.
 
 ### Memory Access Patterns and Caching
 

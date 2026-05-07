@@ -46,15 +46,15 @@ The Roofline Model prevents wasted effort: there is no point optimizing compute 
 
 - Assumes perfect overlap of compute and memory operations.
 - Does not account for instruction-level bottlenecks, latency, occupancy effects, or cache behavior in detail.
-- Serves as a first-order guide; [[nsight]] profiling provides deeper insight.
+- Serves as a first-order guide; [[kernel-dev-nsight]] profiling provides deeper insight.
 
 ## Related Concepts
 
-- [[arithmetic-intensity]]
-- [[cuda-kernel-optimization]]
-- [[gpu-memory-hierarchy]]
-- [[nsight]]
-- [[gemm]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[kernel-dev-cuda-kernel-optimization]]
+- [[kernel-dev-gpu-memory-hierarchy]]
+- [[kernel-dev-nsight]]
+- [[cuda-gemm]]
 
 ## Sources
 

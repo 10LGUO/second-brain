@@ -43,12 +43,12 @@ The LLM infrastructure skill stack describes the layered set of technical compet
 
 ## Related Concepts
 
-- [[llm-training-infra]]
-- [[llm-inference-infra]]
-- [[gpu-software-stack]]
-- [[ai-chip-architecture]]
-- [[operator-fusion]]
-- [[compute-communication-overlap]]
+- [[1-overview-llm-training-infra]]
+- [[1-overview-llm-inference-infra]]
+- [[1-overview-gpu-software-stack]]
+- [[1-overview-ai-chip-architecture]]
+- [[1-overview-operator-fusion]]
+- [[1-overview-compute-communication-overlap]]
 
 ## Sources
 

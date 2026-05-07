@@ -9,11 +9,11 @@ sources: [1-overview.md]
 
 # vLLM
 
-vLLM is a mainstream LLM inference engine and one of the two primary inference frameworks (alongside [[sglang]]) that AI infra engineers must master. It supports high-throughput and low-latency LLM serving.
+vLLM is a mainstream LLM inference engine and one of the two primary inference frameworks (alongside [[1-overview-sglang]]) that AI infra engineers must master. It supports high-throughput and low-latency LLM serving.
 
 ## Why It Matters to This Wiki
 
-vLLM is a primary reference implementation for distributed LLM inference. It implements PagedAttention (KV cache management), continuous batching, and other inference optimization techniques. Together with [[sglang]], it represents the current convergence point of LLM inference framework technology.
+vLLM is a primary reference implementation for distributed LLM inference. It implements PagedAttention (KV cache management), continuous batching, and other inference optimization techniques. Together with [[1-overview-sglang]], it represents the current convergence point of LLM inference framework technology.
 
 ## Key Features
 
@@ -23,7 +23,7 @@ vLLM is a primary reference implementation for distributed LLM inference. It imp
 
 ## PD Separation Component
 
-- **lmcache:** vLLM's [[prefill-decode-separation]] component; focuses on distributed [[kv-cache]] management between prefill and decode workers.
+- **lmcache:** vLLM's [[1-overview-prefill-decode-separation]] component; focuses on distributed [[1-overview-kv-cache]] management between prefill and decode workers.
 
 ## Skill Classification
 
@@ -32,17 +32,17 @@ vLLM is a primary reference implementation for distributed LLM inference. It imp
 
 ## Related Entities
 
-- [[sglang]]
-- [[megatron]]
-- [[nccl]]
-- [[flash-attention]]
+- [[1-overview-sglang]]
+- [[1-overview-megatron]]
+- [[1-overview-nccl]]
+- [[1-overview-flash-attention]]
 
 ## Related Concepts
 
-- [[large-model-infra]]
-- [[prefill-decode-separation]]
-- [[kv-cache]]
-- [[inference-latency-metrics]]
+- [[1-overview-large-model-infra]]
+- [[1-overview-prefill-decode-separation]]
+- [[1-overview-kv-cache]]
+- [[1-overview-slo-metrics-ttft-tpot]]
 
 ## Sources
 

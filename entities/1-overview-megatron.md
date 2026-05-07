@@ -9,11 +9,11 @@ sources: [1-overview.md]
 
 # Megatron
 
-Megatron (developed by NVIDIA Research) is a distributed training framework for large language models that contains virtually all mainstream LLM distributed training techniques. It is considered one of the two essential training frameworks (alongside [[deepspeed]]) that AI infra engineers must master.
+Megatron (developed by NVIDIA Research) is a distributed training framework for large language models that contains virtually all mainstream LLM distributed training techniques. It is considered one of the two essential training frameworks (alongside [[1-overview-deepspeed]]) that AI infra engineers must master.
 
 ## Why It Matters to This Wiki
 
-Megatron is a primary reference implementation for distributed LLM training techniques. Both internet companies and domestic chip vendors adapt and extend Megatron for their own use (forking to develop proprietary features). It integrates with [[transformerengine]] for FP8 support and compute-communication overlap, and with [[apex]] for operator acceleration (though TransformerEngine is now preferred over Apex).
+Megatron is a primary reference implementation for distributed LLM training techniques. Both internet companies and domestic chip vendors adapt and extend Megatron for their own use (forking to develop proprietary features). It integrates with [[1-overview-transformer-engine]] for FP8 support and compute-communication overlap, and with [[apex]] for operator acceleration (though TransformerEngine is now preferred over Apex).
 
 ## Key Features
 
@@ -21,7 +21,7 @@ Megatron is a primary reference implementation for distributed LLM training tech
 - Pipeline parallelism, tensor parallelism, data parallelism
 - Integrates TransformerEngine (TE) for FP8 training and compute-communication overlap
 - Integrates Apex for operator acceleration (legacy; TE preferred now)
-- Used with [[nccl]] for distributed communication
+- Used with [[1-overview-nccl]] for distributed communication
 
 ## Skill Classification
 
@@ -30,17 +30,17 @@ Megatron is a primary reference implementation for distributed LLM training tech
 
 ## Related Entities
 
-- [[deepspeed]]
-- [[nccl]]
-- [[flash-attention]]
-- [[transformerengine]]
-- [[vllm]]
-- [[sglang]]
+- [[1-overview-deepspeed]]
+- [[1-overview-nccl]]
+- [[1-overview-flash-attention]]
+- [[1-overview-transformer-engine]]
+- [[1-overview-vllm]]
+- [[1-overview-sglang]]
 
 ## Related Concepts
 
-- [[large-model-infra]]
-- [[compute-communication-overlap]]
+- [[1-overview-large-model-infra]]
+- [[1-overview-compute-communication-overlap]]
 
 ## Sources
 

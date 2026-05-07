@@ -13,7 +13,7 @@ NCCL (NVIDIA Collective Communications Library) is a distributed communication l
 
 ## Why It Matters to This Wiki
 
-NCCL is the foundational communication layer underlying virtually all large-scale distributed deep learning workloads. Understanding NCCL is essential for reasoning about training throughput, scaling efficiency, and infrastructure bottlenecks in any serious AI system. It surfaces repeatedly in discussions of [[distributed-training]], [[model-parallelism]], [[data-parallelism]], and [[tensor-parallelism]], and is directly relevant to the performance characteristics of frameworks like [[pytorch]], [[megatron-lm]], and [[deepspeed]].
+NCCL is the foundational communication layer underlying virtually all large-scale distributed deep learning workloads. Understanding NCCL is essential for reasoning about training throughput, scaling efficiency, and infrastructure bottlenecks in any serious AI system. It surfaces repeatedly in discussions of [[distributed-training]], [[model-parallelism]], [[data-parallelism]], and [[tensor-parallelism]], and is directly relevant to the performance characteristics of frameworks like [[pytorch-framework]], [[1-overview-megatron]], and [[1-overview-deepspeed]].
 
 ## Key Primitives
 
@@ -94,13 +94,13 @@ For tensor parallelism within a node (common in LLM inference), NCCL AllReduce o
 - [[pipeline-parallelism]]
 - [[model-parallelism]]
 - [[gradient-synchronization]]
-- [[nvlink]]
+- [[1-overview-nvlink]]
 - [[infiniband]]
 - [[gpudirect-rdma]]
-- [[pytorch]]
-- [[megatron-lm]]
-- [[deepspeed]]
+- [[pytorch-framework]]
+- [[1-overview-megatron]]
+- [[1-overview-deepspeed]]
 
 ## Sources
 
-- [[1-overview.md]]
+- [[1-overview]]

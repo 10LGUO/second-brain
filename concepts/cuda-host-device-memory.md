@@ -112,8 +112,8 @@ GPU HBM is physically on the GPU die (or package), connected to compute cores wi
 ## Related Concepts
 
 - [[cuda-thread-hierarchy]]
-- [[hbm-high-bandwidth-memory]]
-- [[arithmetic-intensity]]
+- [[1-overview-hbm-high-bandwidth-memory]]
+- [[5-kernel-dev-arithmetic-intensity]]
 - [[warp]]
 
 ## Sources

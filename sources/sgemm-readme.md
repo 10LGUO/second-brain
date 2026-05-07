@@ -192,4 +192,4 @@ With double buffer (kernel 7):
 
 ## Sources
 
-- [[CUDA_Kernel_Samples]] `sgemm/README.md`
+- [[5-kernel-dev-cuda-kernel-samples]] `sgemm/README.md`

@@ -48,11 +48,11 @@ SIMD (Single Instruction Multiple Data) is a parallel programming model in which
 - **Register-only reduce:** Perform final reductions in registers rather than writing back to L1, avoiding `mfence` overhead.
 
 ## Related Concepts
-- [[simt-programming-model]]
-- [[ping-pong-buffer]]
-- [[arithmetic-intensity]]
-- [[layernorm]]
-- [[reduce-operator]]
+- [[5-kernel-dev-simt-programming-model]]
+- [[5-kernel-dev-ping-pong-buffer]]
+- [[5-kernel-dev-arithmetic-intensity]]
+- [[5-kernel-dev-layernorm]]
+- [[5-kernel-dev-reduce-operator]]
 
 ## Sources
 - [[5-kernel-dev]]

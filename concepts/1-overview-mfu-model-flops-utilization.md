@@ -9,13 +9,13 @@ sources: [1-overview.md]
 
 # MFU — Model FLOPS Utilization
 
-**MFU (Model FLOPS Utilization)** is a metric that reflects how efficiently a model's training or inference workload utilizes the theoretical peak compute throughput (FLOPS) of the hardware. It is one of the two primary performance metrics in AI infra, alongside [[memory-bandwidth-utilization]].
+**MFU (Model FLOPS Utilization)** is a metric that reflects how efficiently a model's training or inference workload utilizes the theoretical peak compute throughput (FLOPS) of the hardware. It is one of the two primary performance metrics in AI infra, alongside [[1-overview-memory-bandwidth-utilization]].
 
 ## Key Properties
 
 - **Definition**: MFU = (Achieved FLOPS) / (Peak Hardware FLOPS). A value of 1.0 (100%) means every floating-point operation the hardware is capable of in a given time window is being used productively by the model computation.
 - **Range in practice**: Real workloads rarely exceed 50–60% MFU. Well-optimized large-model training runs (e.g., PaLM, Megatron-LM) have reported 38–57% MFU on TPUs and high-end GPU clusters. Values below ~20% are generally considered poor and warrant investigation.
-- **Compute-bound vs. memory-bound**: MFU is most meaningful when a workload is compute-bound — i.e., the bottleneck is arithmetic throughput rather than data movement. When a workload is memory-bandwidth-bound, [[memory-bandwidth-utilization]] (MBU) is the more diagnostic metric. Large batch sizes and large matrix dimensions push workloads toward being compute-bound and thus toward higher attainable MFU.
+- **Compute-bound vs. memory-bound**: MFU is most meaningful when a workload is compute-bound — i.e., the bottleneck is arithmetic throughput rather than data movement. When a workload is memory-bandwidth-bound, [[1-overview-memory-bandwidth-utilization]] (MBU) is the more diagnostic metric. Large batch sizes and large matrix dimensions push workloads toward being compute-bound and thus toward higher attainable MFU.
 - **Hardware peak FLOPS depends on dtype**: Peak FLOPS differs substantially by precision. An H100 SXM5 delivers ~67 TFLOPS (FP64), ~134 TFLOPS (FP32), ~989 TFLOPS (BF16/FP16 with sparsity off), and ~1979 TFLOPS with structured sparsity. MFU calculations must specify which peak is used as the denominator; the convention is typically to use the dense (non-sparsity) tensor-core peak for the training dtype (usually BF16 or FP16).
 - **Model FLOPS vs. hardware FLOPS**: The numerator is the number of floating-point operations the model actually requires per second, computed from the model architecture (e.g., 6ND for a transformer with N parameters and D tokens per second for forward+backward). This is distinct from the hardware's raw counter of FP ops, which may include overhead operations.
 
@@ -46,7 +46,7 @@ The factor of 6 in the leading term arises from: 2 FLOPS per multiply-accumulate
 - **Infrastructure efficiency signal**: MFU tells operators whether they are getting good value from expensive GPU/TPU compute. A cluster running at 15% MFU is effectively wasting ~85% of its hardware investment on overhead, idle time, communication, or poor kernel utilization.
 - **Scaling cost estimation**: When projecting the cost to train a model of a given size on a given number of tokens, the estimated wall-clock time depends directly on the achievable MFU. Underestimating MFU leads to optimistic compute budgets; overestimating leads to wasted reservation spend.
 - **Comparison across hardware generations**: MFU normalizes throughput against hardware peak, allowing meaningful comparison of training efficiency across GPU generations (A100 vs. H100) or hardware types (GPU vs. TPU), independent of raw clock speed differences.
-- **Optimization target**: Teams working on kernels, communication libraries, and distributed training strategies use MFU as their primary objective function. Improvements in [[flash-attention]], [[tensor-parallelism]], and overlap of compute with [[all-reduce]] communication all show up as MFU gains.
+- **Optimization target**: Teams working on kernels, communication libraries, and distributed training strategies use MFU as their primary objective function. Improvements in [[1-overview-flash-attention]], [[tensor-parallelism]], and overlap of compute with [[all-reduce]] communication all show up as MFU gains.
 - **Accountability for system software**: Because MFU measures the gap between theoretical and realized throughput, it naturally assigns accountability to the software stack — compiler, runtime, communication library, and kernel implementation — rather than the hardware vendor.
 
 ## Common Causes of Low MFU
@@ -54,7 +54,7 @@ The factor of 6 in the leading term arises from: 2 FLOPS per multiply-accumulate
 | Cause | Description |
 | --- | --- |
 | Small batch size / short sequences | Matrix multiplications become too small to saturate tensor cores; arithmetic intensity drops below the compute-bound threshold. |
-| Memory bandwidth bottleneck | Attention with long sequences, embedding lookups, or frequent small operations cause the GPU to stall waiting for data. See [[memory-bandwidth-utilization]]. |
+| Memory bandwidth bottleneck | Attention with long sequences, embedding lookups, or frequent small operations cause the GPU to stall waiting for data. See [[1-overview-memory-bandwidth-utilization]]. |
 | Communication overhead | In multi-GPU/multi-node training, all-reduce, all-gather, or pipeline bubble time subtracts from productive compute time. |
 | Kernel launch overhead | Many small sequential ops (e.g., non-fused activation functions, layer norms) create CPU-side scheduling latency and GPU idle gaps. |
 | Load imbalance | In [[pipeline-parallelism]], uneven stage compute times cause "bubbles" where stages sit idle. |
@@ -66,7 +66,7 @@ The factor of 6 in the leading term arises from: 2 FLOPS per multiply-accumulate
 
 ## Relationship to MBU
 
-MFU and [[memory-bandwidth-utilization]] (MBU) are complementary diagnostics:
+MFU and [[1-overview-memory-bandwidth-utilization]] (MBU) are complementary diagnostics:
 
 - A workload cannot simultaneously be at 100% MFU and 100% MBU — one resource is always the bottleneck.
 - **Compute-bound workloads** (large matmuls, large batch): MFU is the binding constraint. Improving memory bandwidth will not help unless the workload crosses the roofline into memory-bound territory.
@@ -74,7 +74,7 @@ MFU and [[memory-bandwidth-utilization]] (MBU) are complementary diagnostics:
 - The **roofline model** is the formal framework for determining which regime a given operation sits in, based on its arithmetic intensity (FLOPS / bytes accessed).
 - In practice, a single training step contains a mix of compute-bound operations (large dense matrix multiplications in feed-forward layers) and memory-bound operations (layer normalization, softmax, elementwise activations). The overall MFU is a weighted average of the utilization of each operation, which means a few slow memory-bound kernels can drag down the aggregate metric significantly even if the matmuls are well-optimized.
 
-See [[roofline-model]] for the full treatment.
+See [[kernel-dev-roofline-model]] for the full treatment.
 
 ## Practical Benchmarks and Reference Points
 
@@ -91,7 +91,7 @@ These numbers are illustrative; actual MFU depends heavily on sequence length, b
 
 ## Improving MFU
 
-- **Use fused kernels**: [[flash-attention]] fuses the attention computation to avoid multiple passes over large activations, significantly improving both MFU and MBU for attention-heavy workloads.
+- **Use fused kernels**: [[1-overview-flash-attention]] fuses the attention computation to avoid multiple passes over large activations, significantly improving both MFU and MBU for attention-heavy workloads.
 - **Increase batch size**: Larger batches amortize fixed overheads (kernel launches, communication setup) and improve arithmetic intensity of matrix multiplications.
 - **Overlap communication with compute**: Libraries like NCCL with async operations, or frameworks that support compute-communication pipelining, reduce the fraction of time GPUs are idle waiting for gradients.
 - **Use BF16/FP16 training**: Mixed-precision training routes most work through tensor cores, which have 8–16× higher throughput than FP32 cores on modern hardware.
@@ -147,18 +147,18 @@ The practical upper bound of ~50–60% for large-scale training reflects fundame
 
 ## Related Concepts
 
-- [[memory-bandwidth-utilization]] — the complementary metric for memory-bound workloads
-- [[roofline-model]] — formal framework for determining whether a workload is compute-bound or memory-bound
-- [[flash-attention]] — key technique that improves both MFU and MBU for attention
+- [[1-overview-memory-bandwidth-utilization]] — the complementary metric for memory-bound workloads
+- [[kernel-dev-roofline-model]] — formal framework for determining whether a workload is compute-bound or memory-bound
+- [[1-overview-flash-attention]] — key technique that improves both MFU and MBU for attention
 - [[tensor-parallelism]] — parallelism strategy that affects inter-device communication overhead and thus MFU
 - [[pipeline-parallelism]] — introduces pipeline bubbles that reduce effective MFU
 - [[data-parallelism]] — gradient all-reduce overhead impacts MFU at scale
 - [[mixed-precision-training]] — prerequisite for achieving high MFU on tensor cores
-- [[arithmetic-intensity]] — the per-operation property that determines whether an op is compute-bound or memory-bound
+- [[5-kernel-dev-arithmetic-intensity]] — the per-operation property that determines whether an op is compute-bound or memory-bound
 - [[activation-checkpointing]] — trades recomputation FLOPS for reduced memory, affecting MFU accounting
 - [[all-reduce]] — collective communication primitive whose latency and bandwidth cost directly subtracts from MFU in data-parallel training
 - [[chinchilla-scaling-laws]] — governs how total compute budget should be allocated between model size and token count; MFU determines how quickly that budget is consumed
 
 ## Sources
 
-- [[1-overview.md]]
+- [[1-overview]]
