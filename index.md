@@ -52,7 +52,8 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [Compute-Communication Overlap](concepts/1-overview-compute-communication-overlap.md) — Hiding communication latency behind compute
 - [Prefill-Decode Separation](concepts/1-overview-prefill-decode-separation.md) — PD separation architecture for LLM serving
 - [PD Separation](concepts/1-overview-pd-separation.md) — Alternative page on prefill-decode separation
-- [SLO Metrics (TTFT / TPOT)](concepts/1-overview-slo-metrics-ttft-tpot.md) — Time to first token, time per output token
+- [SLO Metrics (TTFT / TPOT)](concepts/1-overview-slo-metrics-ttft-tpot.md) — TTFT driven by prefill compute, TPOT driven by decode memory bandwidth; relationship to Transformer two-phase structure
+- [Speedup Ratio](concepts/speedup-ratio.md) — Amdahl's Law, sub-linear scaling sources in distributed training, relationship to MFU
 - [Precision & Convergence](concepts/1-overview-precision-convergence.md) — FP16/BF16/FP8 training stability
 - [GPU Software Stack](concepts/1-overview-gpu-software-stack.md) — CUDA, cuDNN, cuBLAS, driver stack
 - [Operator Development](concepts/1-overview-operator-development.md) — Custom CUDA kernel development workflow
@@ -66,7 +67,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [PyTorch DataLoader](concepts/pytorch-dataloader.md) — Data loading, num_workers, prefetching
 - [PyTorch Loss Function](concepts/pytorch-loss-function.md) — Cross-entropy, MSE, custom losses
 - [PyTorch Training Loop](concepts/pytorch-training-loop.md) — Forward, backward, optimizer step pattern
-- [Computational Graph](concepts/2-pytorch-computational-graph.md) — Dynamic graph construction in PyTorch
+- [Computational Graph](concepts/2-pytorch-computational-graph.md) — Dynamic vs static graph operator behavior, operator fusion, torch.compile, TPU/XLA static graph model
 - [PyTorch Framework](entities/pytorch-framework.md) — PyTorch deep learning framework overview
 
 ---
