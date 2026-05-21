@@ -93,6 +93,10 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 
 ---
 
+## Open Questions
+
+- [Open Questions](open-questions.md) — Unverified claims and questions to follow up on
+
 ## Sources
 
 - [1. General Overview — Lecture 1](sources/1-overview.md) — LLM infrastructure overview: training & inference challenges, GPU chip architecture, software stack, key frameworks, skill stack
