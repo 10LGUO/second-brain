@@ -3,7 +3,7 @@ title: NCCL (NVIDIA Collective Communications Library)
 type: entity
 tags: [library, distributed-communication, gpu, training, inference, ai-infra]
 created: 2026-04-05
-updated: 2026-04-05
+updated: 2026-05-21
 sources: [1-overview.md]
 ```
 
@@ -34,6 +34,19 @@ NCCL automatically detects and exploits the physical interconnect topology of th
 - **InfiniBand / RoCE** — Inter-node communication via RDMA-capable network fabrics. NCCL integrates with these through the **NCCL Net plugin** and leverages **GPUDirect RDMA** to transfer data directly from GPU memory to the NIC, bypassing the CPU and host memory.
 
 NCCL uses a ring-based or tree-based algorithm depending on message size and topology, automatically selecting the most efficient strategy.
+
+## Transport Layer
+
+NCCL is **not RDMA-only**. It has a pluggable transport layer and selects the best available path automatically:
+
+| Transport | Scope | Notes |
+|---|---|---|
+| NVLink / NVSwitch | Intra-node | Highest priority when available; ~900 GB/s on H100 |
+| PCIe | Intra-node | Fallback when NVLink absent; ~64 GB/s shared |
+| InfiniBand / RoCE (RDMA) | Inter-node | Preferred inter-node path; uses GPUDirect RDMA to bypass CPU and host memory |
+| TCP sockets | Inter-node | Fallback when no RDMA fabric is available |
+
+**GPUDirect RDMA** (GPU memory → NIC, bypassing CPU/host DRAM) requires RDMA-capable hardware and the `nvidia-peermem` kernel module to be loaded. If missing, NCCL silently falls back to a slower host-staging path — detectable via `NCCL_DEBUG=INFO`. Force the socket fallback explicitly with `NCCL_IB_DISABLE=1` + `NCCL_SOCKET_IFNAME`.
 
 ## Algorithm Selection
 
