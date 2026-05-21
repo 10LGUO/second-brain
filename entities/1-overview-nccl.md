@@ -4,6 +4,7 @@ type: entity
 tags: [library, distributed-communication, gpu, training, inference, ai-infra]
 created: 2026-04-05
 updated: 2026-05-21
+
 sources: [1-overview.md]
 ```
 
@@ -34,6 +35,30 @@ NCCL automatically detects and exploits the physical interconnect topology of th
 - **InfiniBand / RoCE** — Inter-node communication via RDMA-capable network fabrics. NCCL integrates with these through the **NCCL Net plugin** and leverages **GPUDirect RDMA** to transfer data directly from GPU memory to the NIC, bypassing the CPU and host memory.
 
 NCCL uses a ring-based or tree-based algorithm depending on message size and topology, automatically selecting the most efficient strategy.
+
+## Relationship to CUDA Streams
+
+NCCL operations are submitted to a **CUDA stream** — every collective call takes an explicit `stream` argument:
+
+```cpp
+ncclAllReduce(sendbuf, recvbuf, count, datatype, op, comm, stream);
+```
+
+From the GPU scheduler's perspective, NCCL ops are just work items enqueued on that stream, ordered like any other CUDA kernel. NCCL internally launches its own CUDA kernels (for data packing, in-GPU movement, etc.) on the stream you pass in, while NVLink/NIC transfers happen asynchronously in parallel.
+
+**Compute-communication overlap** is achieved by placing NCCL ops and compute kernels on separate streams:
+
+```
+Stream A: [ compute layer N ]────────────────────[ compute layer N-1 ]──▶
+Stream B:              [ AllReduce grads N-1 ]──────────────────────────▶
+```
+
+When the two streams run concurrently, communication is hidden behind compute — this is the core mechanism described in [[1-overview-compute-communication-overlap]] that pushes the [[speedup-ratio]] toward its theoretical maximum.
+
+Two important constraints:
+
+1. **Single-stream serialization**: NCCL ops and compute kernels on the *same* stream are still serialized. Overlap requires different streams.
+2. **Symmetric collective ordering**: All ranks must call the same NCCL collective in the same order across streams. Any asymmetry causes a deadlock — one of the most common failure modes in distributed training.
 
 ## Transport Layer
 
