@@ -3,7 +3,7 @@ title: Computational Graph (PyTorch)
 type: concept
 tags: [pytorch, computational-graph, autograd, deep-learning, backpropagation, operator-fusion, tpu, xla]
 created: 2026-04-05
-updated: 2026-05-17
+updated: 2026-05-21
 sources: [2-pytorch.md]
 ```
 
@@ -61,6 +61,66 @@ PyTorch 2.0 introduced `torch.compile` (backed by TorchInductor) to capture a st
 3. Subsequent calls reuse the compiled artifact.
 
 The typical production pattern: **develop with eager (dynamic), deploy with `torch.compile` (static)**.
+
+## When Does Static Graph Compilation Happen?
+
+"Compilation time" means different things across frameworks:
+
+### JIT (Just-In-Time) — JAX and torch.compile
+
+Both JAX `@jax.jit` and `torch.compile` compile on the **first call** with a given input shape. The graph is fixed at that moment; subsequent calls with the same shape reuse the compiled artifact without going through the Python interpreter.
+
+- First call: slow (compilation overhead)
+- Subsequent calls: fast (compiled kernel reuse)
+- New input shape: triggers recompilation
+
+### AOT (Ahead-of-Time) — TensorFlow 1.x
+
+The graph is constructed and compiled **before any data is fed**, via explicit `Session` / `tf.function` calls. No JIT — the graph structure must be fully known before execution begins.
+
+### Comparison
+
+| | TF 1.x | JAX jit | torch.compile |
+|---|---|---|---|
+| Graph build time | Program start (AOT) | First call (JIT) | First call (JIT) |
+| Trigger | Explicit `Session.run` | First new shape | First new shape |
+| Recompile on new shape | N/A (fixed graph) | Yes | Yes |
+
+The practical consequence: JIT frameworks (JAX, torch.compile) have a **warm-up cost** on the first batch. In production inference, this is mitigated by running a dummy forward pass before serving real traffic.
+
+## How Static Graphs Handle Python Control Flow
+
+Python control flow (`if`, `for`, `while`) is a runtime behavior — the static graph compiler must handle it at compile time. Three strategies:
+
+### 1. Unroll at compile time (trace)
+
+If the control flow depends on a **compile-time constant** (e.g., a fixed loop count), the compiler simply unrolls it into a sequence of static graph nodes. The Python loop disappears.
+
+```python
+for i in range(3):   # constant → unrolled into 3 independent nodes
+    x = layers[i](x)
+```
+
+### 2. Replace with framework primitives (data-dependent flow)
+
+If control flow depends on a **runtime tensor value** (e.g., `if x.sum() > 0`), Python `if/for` cannot be embedded in the static graph. It must be rewritten using framework-provided graph-native primitives:
+
+| Framework | Conditional | Loop |
+|---|---|---|
+| JAX | `jax.lax.cond` | `jax.lax.scan` / `jax.lax.while_loop` |
+| TensorFlow | `tf.cond` | `tf.while_loop` |
+
+These primitives are more verbose than Python equivalents and are the primary ergonomic cost of writing static-graph code.
+
+### 3. Graph break (torch.compile only)
+
+`torch.compile` takes a pragmatic approach: when it encounters Python control flow it cannot capture, it **breaks the graph** rather than erroring. The un-compilable section runs in eager mode; the surrounding compilable regions are each independently optimized.
+
+```
+[compiled subgraph 1] → Python if → [compiled subgraph 2]
+```
+
+More graph breaks = less optimization opportunity (cross-break operator fusion is impossible). Use `torch._dynamo.explain(fn)` to inspect where breaks occur.
 
 ## TPU and XLA: Enforced Static Graph
 
