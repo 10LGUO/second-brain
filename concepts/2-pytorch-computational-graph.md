@@ -112,12 +112,27 @@ If control flow depends on a **runtime tensor value** (e.g., `if x.sum() > 0`), 
 
 These primitives are more verbose than Python equivalents and are the primary ergonomic cost of writing static-graph code.
 
-### 3. Graph break (torch.compile only)
+### 3. Specialize per branch (torch.compile / Dynamo)
 
-`torch.compile` takes a pragmatic approach: when it encounters Python control flow it cannot capture, it **breaks the graph** rather than erroring. The un-compilable section runs in eager mode; the surrounding compilable regions are each independently optimized.
+`torch.compile`'s frontend, **Dynamo**, handles Python control flow more cleverly than a simple trace. For each branch of an `if` statement, Dynamo **compiles a separate static graph** and attaches a set of **guards** — runtime conditions that determine which graph to execute:
+
+```python
+if x.shape[0] > 128:
+    x = large_path(x)   # → compiled as graph A, guard: shape[0] > 128
+else:
+    x = small_path(x)   # → compiled as graph B, guard: shape[0] <= 128
+```
+
+At runtime, Dynamo checks the guards and dispatches to the matching compiled graph without going through the Python interpreter. If no existing graph matches (e.g., a new shape), Dynamo recompiles a new specialized graph.
+
+This means Python `if/for` **does not automatically cause a graph break** — Dynamo will attempt to specialize across branches first.
+
+### 4. Graph break — last resort (torch.compile only)
+
+Graph break only occurs when Dynamo genuinely cannot capture the control flow: external Python object state, unrecognized libraries, recursion, or complex closures. The un-compilable section falls back to eager mode; surrounding regions are each independently compiled.
 
 ```
-[compiled subgraph 1] → Python if → [compiled subgraph 2]
+[compiled subgraph 1] → uncompilable Python → [compiled subgraph 2]
 ```
 
 More graph breaks = less optimization opportunity (cross-break operator fusion is impossible). Use `torch._dynamo.explain(fn)` to inspect where breaks occur.
