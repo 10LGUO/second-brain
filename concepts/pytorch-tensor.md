@@ -3,7 +3,7 @@ title: PyTorch Tensor
 type: concept
 tags: [pytorch, tensor, deep-learning, linear-algebra, gpu]
 created: 2026-04-05
-updated: 2026-04-05
+updated: 2026-05-25
 sources: [2-pytorch.md]
 ```
 
@@ -46,6 +46,38 @@ torch.linspace(0, 1, steps=100)     # linear spacing
 - **Reduction:** `.sum()`, `.mean()`, `.max()`, `.min()`, `.argmax()`
 - **In-place ops:** Suffixed with `_`: `.add_()`, `.fill_()` — modifies tensor
   directly; cannot be used on tensors that require grad
+
+## Direct GPU Creation vs CPU-then-Transfer
+
+Tensors can be created directly on GPU by passing `device='cuda'` to any factory function:
+
+```python
+torch.zeros(3, 4, device='cuda')
+torch.arange(0, 512, device='cuda')
+torch.randn(3, 4, device='cuda')
+```
+
+This avoids a CPU→GPU PCIe transfer entirely. Whether direct GPU creation is possible depends on whether the tensor's **values are fully determined without CPU-side data**:
+
+| Scenario | Direct GPU creation? | Reason |
+|---|---|---|
+| `torch.zeros/ones/full` | Yes | Constant value |
+| `torch.arange/linspace` | Yes | Arithmetic sequence, GPU computes it |
+| `torch.randn/rand` | Yes | GPU has its own RNG |
+| `torch.tensor(python_list)` | No | Data lives in Python/CPU memory |
+| `torch.from_numpy(arr)` | No | NumPy array is always CPU |
+| `torch.load(...)` | No | Loaded from disk into CPU RAM first |
+
+**Performance implication:** In hot paths (e.g., computing sinusoidal position embeddings every forward pass), creating with `device=t.device` instead of `.to(device=t.device)` eliminates a synchronous PCIe transfer that would stall the GPU stream.
+
+```python
+# Slow: born on CPU, transferred to GPU
+freqs = torch.arange(0, half, dtype=torch.float32) / half  # CPU
+freqs = freqs.to(device=t.device)                          # PCIe sync
+
+# Fast: born directly on GPU
+freqs = torch.arange(0, half, dtype=torch.float32, device=t.device) / half
+```
 
 ## Moving Between Devices
 
