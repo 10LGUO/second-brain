@@ -133,6 +133,6 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 
 ## [2026-05-06] lint | Deleted 8 duplicate pages (prefixed vs canonical names); fixed ~150 broken wikilinks across 76 files via bulk slug remapping; added missing pytorch-framework to index; ~60 links remain broken (genuine missing pages: tensor-parallelism, data-parallelism, speculative-decoding, triton, etc.)
 
-## [2026-05-27] update | concepts/1-overview-precision-convergence.md — added FP16 vs BF16 practical choice section (training→BF16, inference→FP16, reasons)
+## [2026-05-27] update | concepts/1-overview-precision-convergence.md — FP32 accumulator requirement for reduction kernels (LayerNorm, RMSNorm, Softmax, matmul); added FP16 vs BF16 practical choice section
 
 ## [2026-05-26] ingest | Lecture 7 — Accuracy Debugging (精度调试) — precision types (FP32/BF16/FP16/FP8), numerical instability & batch-invariant kernels (SGLang Sep 2025), GPU & domestic-chip debugging methodology, common precision bugs

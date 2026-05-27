@@ -34,6 +34,8 @@ FP16 and BF16 are the two dominant low-precision formats, but they suit differen
 
 **More aggressive quantization** (INT8, FP8, INT4) is increasingly used on the inference side to push performance further, at the cost of additional precision loss.
 
+**When FP32 is still required — accumulation inside reduction kernels.** Even when the input tensor is BF16/FP16, reduction operators (LayerNorm, RMSNorm, Softmax, large matmul) must promote their internal accumulator to FP32. BF16/FP16 accumulation across thousands of elements compounds rounding error fast enough to cause overflow or significant precision loss. This is one of the most common sources of precision bugs on domestic chips: implementing a LayerNorm kernel but accumulating in BF16 instead of FP32.
+
 ---
 
 ## Sources of Precision Issues
