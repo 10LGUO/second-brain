@@ -3,8 +3,8 @@ title: Precision Convergence (精度收敛)
 type: concept
 tags: [precision, domestic-chips, ai-infra, debugging, training, inference]
 created: 2026-04-05
-updated: 2026-04-05
-sources: [1-overview.md]
+updated: 2026-05-27
+sources: [1-overview.md, 7-accuracy-debugging.md]
 ```
 
 # Precision Convergence (精度收敛)
@@ -16,6 +16,25 @@ Precision convergence refers to the challenge of ensuring that a model running o
 - **Prerequisite for everything else:** No performance optimization is meaningful if the model produces incorrect results.
 - **Business-critical for domestic chip vendors:** A single unlocated precision error can cost billions in contracts. If the source of the error (software vs. hardware) cannot be identified, next-generation chip hardware may inherit the defect — propagating the problem indefinitely.
 - **Systematic challenge:** Requires a dedicated methodology; cannot be solved by ad hoc debugging alone.
+
+## FP16 vs BF16 — Practical Choice
+
+FP16 and BF16 are the two dominant low-precision formats, but they suit different scenarios:
+
+| | FP16 | BF16 |
+|---|---|---|
+| Exponent bits | 5 | 8 (same as FP32) |
+| Mantissa bits | 10 | 7 |
+| Numeric range | ±6.6×10⁴ (**narrow**) | ±3.4×10³⁸ (same as FP32) |
+| Decimal precision | 3–4 digits | 1–2 digits |
+
+**Training → BF16 is the default on modern hardware (A100+).** Gradients and activations span a wide dynamic range during training; FP16's narrow range causes overflow. BF16's FP32-equivalent exponent range avoids this entirely.
+
+**Inference → FP16 remains common.** Weights and activations are fixed and stay within a stable range, so overflow risk is low. FP16's higher mantissa precision can be an advantage, and older hardware (V100 etc.) has better FP16 support.
+
+**More aggressive quantization** (INT8, FP8, INT4) is increasingly used on the inference side to push performance further, at the cost of additional precision loss.
+
+---
 
 ## Sources of Precision Issues
 
