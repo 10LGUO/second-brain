@@ -54,7 +54,8 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [PD Separation](concepts/1-overview-pd-separation.md) — Alternative page on prefill-decode separation
 - [SLO Metrics (TTFT / TPOT)](concepts/1-overview-slo-metrics-ttft-tpot.md) — TTFT driven by prefill compute, TPOT driven by decode memory bandwidth; relationship to Transformer two-phase structure
 - [Speedup Ratio](concepts/speedup-ratio.md) — Amdahl's Law, sub-linear scaling sources in distributed training, relationship to MFU
-- [Precision & Convergence](concepts/1-overview-precision-convergence.md) — FP16/BF16/FP8 training stability
+- [Precision & Convergence](concepts/1-overview-precision-convergence.md) — Precision debugging methodology: baseline, randomness-fixing, numerical comparison; operator bugs, memory trampling, accumulation overflow
+- [Numerical Instability](concepts/numerical-instability.md) — Floating-point non-associativity, big-eats-small, dynamic batching non-determinism, batch-invariant kernels
 - [GPU Software Stack](concepts/1-overview-gpu-software-stack.md) — CUDA, cuDNN, cuBLAS, driver stack
 - [Operator Development](concepts/1-overview-operator-development.md) — Custom CUDA kernel development workflow
 - [Operator Fusion](concepts/1-overview-operator-fusion.md) — Fusing kernels to reduce memory traffic
@@ -106,6 +107,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [CUDA SGEMM Optimization](sources/sgemm-readme.md) — Seven progressive SGEMM kernels: naive → shared memory tiling → 1D/2D thread tile → float4 → double buffer
 - [GPU Performance Optimization Codelab](sources/gpu-perf-codelab.md) — Profiling workflow: torch.profiler, nsys, ncu, NVTX markers, roofline model, multi-model training bottlenecks
 - [BAGEL](sources/bagel.md) — Bytedance 14B multimodal model (7B active MoT); architecture, VRAM requirements, inference pipeline, optimization targets
+- [Lecture 7 — Accuracy Debugging](sources/7-accuracy-debugging.md) — Precision types (FP32/BF16/FP16/FP8), numerical instability & batch-invariant kernels, GPU & domestic-chip debugging methodology, common precision bugs
 
 ---
 
