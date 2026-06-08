@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../Bagel"
+		},
+		{
+			"path": "../nano-vllm"
 		}
 	],
 	"settings": {}
