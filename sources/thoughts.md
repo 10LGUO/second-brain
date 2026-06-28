@@ -33,6 +33,18 @@ The page pool is shared physical memory across all sequences. Computing attentio
 **Paged attention is decode-only**
 During prefill the full prompt can be stored contiguously; non-contiguous page management only has value during decode, where one token is appended per step.
 
+## Speculative Decoding
+
+**The real bottleneck is HBM reads per token, not arithmetic dependency**
+The autoregressive dependency (step t+1 needs token t's embedding to construct Q) is a mathematical constraint, but it's not the core problem — once a model iteration finishes, the next token is known and Q can be constructed immediately. The real bottleneck is that KV cache lives in HBM (too large for SRAM: a single sequence at 1K tokens already exceeds total SRAM on an A100), so every decode step pays the full HBM bandwidth cost regardless. Speculative decoding improves the ratio of tokens produced per HBM read: naive decode is 1:1, speculative decode approaches λ:1 by using draft tokens to enable parallel prefill-style verification.
+
+**Why you can't hold KV cache in SRAM across steps**
+Not an engineering choice — KV cache for a single sequence (e.g. Qwen3-0.6B, seq_len=1024) is ~58MB, exceeding total SRAM across all SMs on an A100 (~40MB). KV cache must live in HBM by physical necessity.
+
+**The two verify approaches**
+Method 1 `[B, H, λ, t+λ]`: processes all draft tokens as a prefill with causal mask — position i attends to original context plus draft tokens 1..i-1. Strictly equivalent to target model's distribution.
+Method 2 `[B×λ, t+1, D]`: treats each draft token as an independent batch item attending only to original context + itself. Under sequential acceptance, the conditioning prefix is actually the same as method 1 — the difference shows up in reject/truncation handling, not in the attention computation itself.
+
 ## Memory and Compute
 
 **In PyTorch eager mode, every tensor lives in HBM**
