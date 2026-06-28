@@ -60,6 +60,12 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [Operator Development](concepts/1-overview-operator-development.md) — Custom CUDA kernel development workflow
 - [Operator Fusion](concepts/1-overview-operator-fusion.md) — Fusing kernels to reduce memory traffic
 
+### Attention & Transformers
+- [Attention Mechanism](concepts/attention-mechanism.md) — Q/K/V roles, multi-head attention, scaling, embeddings, block vs Flash attention, paged attention, CUDA Graphs
+- [Attention Mechanism — Flashcards](concepts/attention-mechanism-flashcards.md) — Active recall cards for attention mechanism concepts
+- [FlashAttention](concepts/8-memory-opt-flash-attention.md) — IO-complexity, online softmax, tiling strategy
+- [NanoVLLM Scheduler & Paged Attention](concepts/10-nanovllm-scheduler-paged-attention.md) — Block manager, prefix cache, scheduler, gather step
+
 ### PyTorch
 - [PyTorch Tensor](concepts/pytorch-tensor.md) — Tensor operations, memory layout, strides
 - [PyTorch Autograd](concepts/pytorch-autograd.md) — Automatic differentiation, computational graph

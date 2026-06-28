@@ -3,7 +3,7 @@ title: NanoVLLM — Scheduler and Paged Attention
 type: concept
 tags: [inference, scheduler, paged-attention, kv-cache, prefix-cache, preemption, continuous-batching, nanovllm]
 created: 2026-06-08
-updated: 2026-06-08
+updated: 2026-06-24
 sources: [10-nanovllm.md]
 ```
 
@@ -38,11 +38,42 @@ kv_cache: (2, num_layers, num_kvcache_blocks, block_size, num_kv_heads, head_dim
 
 Each sequence has a `block_table` — a CPU-side list of physical block IDs pointing into this shared tensor. Blocks are allocated/freed at block granularity, eliminating fragmentation.
 
+**Why paging eliminates fragmentation**
+
+The entire KV cache tensor is pre-allocated as one contiguous chunk at startup — there is no dynamic GPU malloc/free. The block manager tracks ownership with CPU-side integer sets (`free_block_ids`, `used_block_ids`). Allocation is `pop block_id from free_block_ids`; deallocation is `push it back`. Since the underlying GPU memory never moves, holes between allocations cannot form the way they do with a traditional heap.
+
+Compare to the naive approach: each sequence gets a contiguous HBM chunk proportional to its max length. When sequences finish at different times, gaps of varying sizes appear that cannot be filled by sequences of different lengths — classic external fragmentation. Paging avoids this because the `block_table` handles non-contiguous mapping, so any free block can serve any sequence.
+
+**Coalesced memory access and block alignment**
+
+Each slot in the KV cache stores `num_kv_heads * head_dim` values. For Qwen3-0.6B (8 KV heads, head_dim=128, BF16):
+```
+slot size = 8 * 128 * 2 bytes = 2048 bytes
+```
+
+A CUDA warp (32 threads) loading a slot issues addresses at `slot * 2048 + thread_offset`. Since 2048 is a multiple of the 128-byte memory transaction boundary, all 32 loads coalesce into a small number of transactions — full HBM bandwidth. If `head_dim` were not a power of 2, slot addresses would be misaligned and the GPU would need extra transactions.
+
+`block_size` (256 tokens) does not affect coalescing — it is chosen for management granularity. Per-slot alignment is what matters for memory access efficiency, and that is determined solely by `num_kv_heads * head_dim * bytes_per_element`.
+
 **Block states:**
 - **used**: currently occupied by a sequence (`ref_count > 0`)
 - **free**: not currently occupied, but may still contain valid KV data if hash is intact
 - **complete**: a full block whose tokens won't change — eligible for prefix cache hashing
 - **tail block**: the last block of a sequence, still being written — not hashed
+
+## Paged Attention Kernel — How the Gather Step Works
+
+At the kernel level, paged attention separates storage from computation:
+
+**Storage layout**: K and V are not stored per-sequence. They live in a shared physical page pool shaped `[num_pages, page_size, num_kv_heads, head_dim]`. A page holds `page_size` tokens worth of KV vectors — not a single token. Multiple pages compose a sequence's full KV history.
+
+**The gather step (what makes it "paged")**: Before computing attention, the kernel uses `block_tables[seq_idx]` to look up which physical pages belong to sequence `b`, then gathers those pages to reconstruct that sequence's contiguous KV view. Only then does it compute `Q @ K^T` over all gathered tokens.
+
+Without the gather step, attention over the raw page pool would mix tokens from different sequences — a correctness bug, not a performance issue.
+
+**Decode only**: Paged attention kernels assert `q_len == 1`. Each decode step generates one new token, which attends over the full cached KV history (many pages). Prefill (`q_len = prompt_len`) processes the prompt in one shot and doesn't benefit from paging — it runs standard attention.
+
+**Page size granularity**: Page size is a token-count parameter (e.g. 16 in vLLM, 256 in NanoVLLM). Larger pages mean less page-table overhead but more internal fragmentation in the tail block. The last (tail) block is always partially filled and is never hashed for prefix cache until it becomes a full complete block.
 
 ## Prefix Cache
 
