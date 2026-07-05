@@ -8,6 +8,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 
 ### GPU Architecture & Hardware
 - [GPU Software & Hardware Architecture](concepts/1-overview-gpu-software-hardware-architecture.md) — SM structure, execution model, warp scheduling, memory hierarchy
+- [GPU Execution Model](concepts/gpu-execution-model.md) — Stream/Kernel/Block/Warp/SM/Shared Memory/Registers/HBM hierarchy, hardware limits, GEMM kernel example
 - [GPU Memory Hierarchy](concepts/1-overview-gpu-memory-hierarchy.md) — HBM, SRAM, registers, cache hierarchy
 - [HBM (High Bandwidth Memory)](concepts/1-overview-hbm-high-bandwidth-memory.md) — HBM architecture, bandwidth, A100 specs
 - [AI Chip Architecture](concepts/1-overview-ai-chip-architecture.md) — GPU chip design, tensor cores, interconnects
@@ -49,6 +50,8 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [KV Cache](concepts/1-overview-kv-cache.md) — Key-value cache for autoregressive inference
 - [MFU (Model FLOPs Utilization)](concepts/1-overview-mfu-model-flops-utilization.md) — Training efficiency metric
 - [Memory Bandwidth Utilization](concepts/1-overview-memory-bandwidth-utilization.md) — Inference efficiency metric
+- [Parallelism Strategies](concepts/parallelism-strategies.md) — DP, TP, PP, EP comparison: what is split, communication pattern, memory savings, how they combine
+- [Collective Communication](concepts/collective-communication.md) — Scatter, Reduce-Scatter, All-Gather, All-Reduce, Ring All-Reduce mechanics, data parallelism gradient sync
 - [Compute-Communication Overlap](concepts/1-overview-compute-communication-overlap.md) — Hiding communication latency behind compute
 - [Prefill-Decode Separation](concepts/1-overview-prefill-decode-separation.md) — PD separation architecture for LLM serving
 - [PD Separation](concepts/1-overview-pd-separation.md) — Alternative page on prefill-decode separation
