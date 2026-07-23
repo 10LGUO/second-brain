@@ -170,3 +170,4 @@ Each element of A and B is loaded once but participates in 128 multiply-accumula
 - [[kernel-dev-register-spill]] — register spill detection and mitigation
 - [[1-overview-gpu-memory-hierarchy]] — HBM, SRAM, registers from architecture perspective
 - [[9-perf-opt-torch-compile-cuda-graph]] — CUDA Graph for reducing launch overhead
+- [[pytorch-dispatcher-execution]] — how PyTorch routes ops to these kernels, async launch, sync points, CUDA graph capture constraints

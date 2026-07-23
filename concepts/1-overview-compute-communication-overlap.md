@@ -1,6 +1,6 @@
 ```markdown
 ---
-title: Compute-Communication Overlap (通算融合 / 通信计算隐藏)
+title: Compute-Communication Overlap
 type: concept
 tags: [distributed-systems, performance-optimization, ai-infra, training, inference, communication]
 created: 2026-04-05
@@ -8,7 +8,7 @@ updated: 2026-04-05
 sources: [1-overview.md]
 ---
 
-# Compute-Communication Overlap (通算融合 / 通信计算隐藏)
+# Compute-Communication Overlap
 
 Compute-communication overlap is the technique of asynchronously executing communication operations (data transfer between GPUs or nodes) and compute operations (matrix multiplications, attention, etc.) simultaneously, so that communication latency is hidden behind compute time. It is one of the most important performance optimization techniques in large-scale distributed training and inference.
 
@@ -17,8 +17,8 @@ Compute-communication overlap is the technique of asynchronously executing commu
 In multi-card (multi-GPU) distributed training and inference, computation and communication are both necessary but their sequential execution wastes time. Communication that **cannot be fully hidden** directly reduces the [[speedup-ratio]], making scale-out less effective.
 
 Under the von Neumann architecture perspective used in AI infra:
-- **Compute flow (计算流):** Fill compute units with work at all times.
-- **Data flow (数据流):** Move data as fast as possible, minimizing resource usage.
+- **Compute flow:** Fill compute units with work at all times.
+- **Data flow:** Move data as fast as possible, minimizing resource usage.
 - The goal is to **overlap data flow and compute flow** via async execution so that each hides the latency of the other.
 
 ## How It Works
@@ -29,8 +29,8 @@ Under the von Neumann architecture perspective used in AI infra:
 
 ## Variants and Terminology
 
-- **通算融合 (compute-communication fusion):** Fusing communication and compute at the operator level — the communication is embedded in the operator itself rather than being a separate step.
-- **通信计算隐藏 (communication-compute hiding):** The broader technique of scheduling communication to overlap with compute, reducing exposed latency.
+- **Compute-communication fusion:** Fusing communication and compute at the operator level — the communication is embedded in the operator itself rather than being a separate step.
+- **Communication-compute hiding:** The broader technique of scheduling communication to overlap with compute, reducing exposed latency.
 
 ## Importance
 

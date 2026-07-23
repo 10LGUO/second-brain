@@ -1,5 +1,5 @@
 ```yaml
-title: Precision Convergence (精度收敛)
+title: Precision Convergence
 type: concept
 tags: [precision, domestic-chips, ai-infra, debugging, training, inference]
 created: 2026-04-05
@@ -7,7 +7,7 @@ updated: 2026-05-27
 sources: [1-overview.md, 7-accuracy-debugging.md]
 ```
 
-# Precision Convergence (精度收敛)
+# Precision Convergence
 
 Precision convergence refers to the challenge of ensuring that a model running on a given hardware/software stack produces numerical outputs that match expected results — typically validated against a reference implementation (usually NVIDIA GPU). It encompasses both algorithmic correctness and hardware/chip system correctness. Precision is a foundational requirement: **"Only when precision is correct can you discuss performance."**
 
@@ -44,7 +44,7 @@ FP16 and BF16 are the two dominant low-precision formats, but they suit differen
 
 - **Incorrect computation:** wrong result from a kernel bug.
 - **Missing synchronization:** a block should sync before writing results but doesn't; produces non-deterministic or wrong outputs.
-- **Memory trampling (内存踩踏):** kernel writes out of bounds in HBM, corrupting adjacent tensors. Unit tests often miss this; manifests only in full model runs.
+- **Memory trampling:** kernel writes out of bounds in HBM, corrupting adjacent tensors. Unit tests often miss this; manifests only in full model runs.
 - **Accumulation precision / overflow:** low-precision accumulator where FP32 is required (classic: LayerNorm sum in FP16 overflows or loses mantissa bits).
 
 ### Distributed / Communication

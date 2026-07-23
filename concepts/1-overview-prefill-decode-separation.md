@@ -1,5 +1,5 @@
 ```yaml
-title: Prefill-Decode Separation (PD分离)
+title: Prefill-Decode Separation
 type: concept
 tags: [inference, llm, vllm, sglang, kv-cache, distributed-inference, ai-infra]
 created: 2026-04-05
@@ -7,7 +7,7 @@ updated: 2026-04-05
 sources: [1-overview.md]
 ```
 
-# Prefill-Decode Separation (PD分离)
+# Prefill-Decode Separation
 
 Prefill-Decode (PD) separation is an architectural pattern in LLM inference that separates the **prefill phase** (processing the input prompt to generate the initial KV cache) from the **decode phase** (autoregressive token generation) into distinct compute stages, often running on separate hardware or services. This separation enables independent scaling and optimization of each phase.
 

@@ -1,5 +1,5 @@
 ```yaml
-title: "Lecture 3/4 — vLLM 推理引擎关键特性 (Key Features of the vLLM Inference Engine)"
+title: "Lecture 3/4 — Key Features of the vLLM Inference Engine"
 type: source
 tags: [inference, llm, vllm, continuous-batching, kv-cache, paged-attention, quantization, speculative-decoding, chunked-prefill, scheduling, tensor-parallelism, pipeline-parallelism]
 created: 2026-06-22
@@ -7,142 +7,142 @@ updated: 2026-06-22
 sources: [3:4 - vllm.pdf]
 ```
 
-# Lecture 3/4 — vLLM 推理引擎关键特性
+# Lecture 3/4 — Key Features of the vLLM Inference Engine
 
-Source: 上交大 AI Infra 团队 (SJTU AI Infra Team), lecture series.
+Source: SJTU AI Infra Team, lecture series.
 
 This lecture covers the key systems-level features that make vLLM a high-throughput LLM inference engine: continuous batching, KV cache management, PagedAttention, scheduling, quantization, speculative decoding, and multi-node/multi-GPU serving.
 
 ---
 
-## 1. 连续批处理 (Continuous Batching)
+## 1. Continuous Batching
 
-### 背景
+### Background
 
-LLM 推理分两个阶段：
-- **Prefill**：处理输入 prompt，一次性计算所有 token 的 KV cache，计算密集
-- **Decode**：逐 token 生成，每步只生成一个 token，内存带宽密集
+LLM inference has two phases:
+- **Prefill**: process the input prompt, computing the KV cache for all tokens at once — compute-intensive.
+- **Decode**: generate token by token, one token per step — memory-bandwidth-intensive.
 
-传统**静态批处理 (static batching)**：将一批请求打包，等所有请求都完成才接受下一批。问题：序列长度不一，短序列完成后 GPU 空转等待长序列，利用率低。
+Traditional **static batching**: pack a batch of requests and wait until all of them finish before accepting the next batch. Problem: sequence lengths differ, so once short sequences finish the GPU idles waiting for the long ones — low utilization.
 
-### 连续批处理原理
+### How Continuous Batching Works
 
-**连续批处理 (continuous batching)**，也叫 iteration-level batching：每个 decode step 结束后，立刻将已完成的请求替换为新请求，不等待整批完成。
+**Continuous batching** (also called iteration-level batching): after each decode step, immediately replace finished requests with new ones instead of waiting for the whole batch to complete.
 
 ```
 Step 1: [Req A, Req B, Req C, Req D]
-Step 2: [Req A, Req B, Req C, Req E]  ← D 完成，E 插入
-Step 3: [Req A, Req F, Req C, Req E]  ← B 完成，F 插入
+Step 2: [Req A, Req B, Req C, Req E]  ← D finished, E inserted
+Step 3: [Req A, Req F, Req C, Req E]  ← B finished, F inserted
 ```
 
-效果：GPU 始终满载，吞吐量大幅提升（vLLM 论文报告相比 FasterTransformer 提升约 23×）。
+Effect: the GPU stays fully loaded, greatly improving throughput (the vLLM paper reports ~23× over FasterTransformer).
 
-### Prefill 与 Decode 的冲突
+### The Prefill/Decode Conflict
 
-同批中混合 prefill（大计算量）和 decode（小计算量）请求时，prefill 请求会抢占 GPU 导致 decode 延迟增加（Time to First Token 与 Inter-Token Latency 的矛盾）。后续 Chunked Prefill 解决此问题。
-
----
-
-## 2. 调度策略 (Scheduling)
-
-### 调度目标
-
-- 最大化 GPU 利用率（吞吐优先）
-- 控制请求延迟（SLA 约束）
-- 防止 KV cache 内存 OOM
-
-### vLLM 调度器行为
-
-vLLM 使用**先来先服务 (First-Come-First-Served, FCFS)** 策略，配合 KV cache 可用块数做准入控制：
-
-1. 新请求进入等待队列
-2. 调度器检查当前 KV cache 剩余块是否足够
-3. 足够则将请求移入运行队列（running）
-4. 不足则将低优先级（最晚到达）的请求**抢占 (preempt)**，释放其 KV cache 块
-5. 被抢占的请求回到等待队列，下次调度重新做 prefill
-
-**Swap**（可选）：被抢占的 KV cache 可先 swap 到 CPU 内存，避免重新 prefill，但 swap 带宽开销大，实践中效果参差。
-
-### 调度粒度
-
-- **Chunked Prefill** 启用前：prefill 请求整体作为一个调度单元
-- **Chunked Prefill** 启用后：prefill 可以切成多个 chunk，与 decode 交替执行，平衡延迟
+When a batch mixes prefill (large compute) and decode (small compute) requests, the prefill request preempts the GPU and increases decode latency (the tension between Time to First Token and Inter-Token Latency). Chunked Prefill (below) addresses this.
 
 ---
 
-## 3. KV Cache 管理
+## 2. Scheduling
 
-### KV Cache 的内存压力
+### Scheduling Goals
 
-每个 token 的 KV cache 大小：
+- Maximize GPU utilization
+- Bound request latency (SLA constraint)
+- Prevent KV cache memory OOM
+
+### vLLM Scheduler Behavior
+
+vLLM uses a **First-Come-First-Served (FCFS)** policy, combined with admission control based on the number of available KV cache blocks:
+
+1. A new request enters the waiting queue.
+2. The scheduler checks whether enough KV cache blocks remain.
+3. If enough, the request is moved to the running queue.
+4. If not, a lower-priority request is **preempted**, freeing its KV cache blocks.
+5. The preempted request returns to the waiting queue and re-does prefill when scheduled again.
+
+**Swap**: preempted KV cache can be swapped to CPU memory first to avoid re-prefilling, but swap bandwidth cost is high and results are mixed in practice.
+
+### Scheduling Granularity
+
+- Before **Chunked Prefill**: a prefill request is a single scheduling unit as a whole.
+- After **Chunked Prefill**: prefill can be split into multiple chunks and interleaved with decode to balance latency.
+
+---
+
+## 3. KV Cache Management
+
+### KV Cache Memory Pressure
+
+KV cache size per token:
 
 ```
 2 × num_layers × num_heads × head_dim × sizeof(dtype)
 ```
 
-对于 Llama-3 8B（BF16）：
-- 32 层 × 32 头 × 128 head_dim × 2 字节 × 2（K+V）= **512 KB/token**
-- 4096 token 上下文 = **2 GB**
-- 同时跑 100 个请求 = **200 GB**（远超单卡）
+For Llama-3 8B (BF16):
+- 32 layers × 32 heads × 128 head_dim × 2 bytes × 2 (K+V) = **512 KB/token**
+- 4096-token context = **2 GB**
+- 100 concurrent requests = **200 GB**
 
-### 碎片化问题
+### Fragmentation Problem
 
-不同请求的序列长度不同，传统方式为每个请求**预先分配最大长度**的连续内存：
-- 内部碎片：请求未用完的空间浪费
-- 外部碎片：内存不连续，无法给新请求使用
-- 无法共享：相同 prompt 的请求重复存储 KV
+Different requests have different sequence lengths. The traditional approach **pre-allocates contiguous memory for the maximum length** per request:
+- Internal fragmentation: space a request doesn't use is wasted.
+- External fragmentation: non-contiguous memory can't be given to new requests.
+- No sharing: requests with the same prompt store the KV redundantly.
 
 ---
 
 ## 4. PagedAttention
 
-### 核心思想
+### Core Idea
 
-借鉴操作系统**虚拟内存分页 (virtual memory paging)** 机制，将 KV cache 切分为固定大小的**块 (block)**，不要求物理连续。
+Borrowing the operating system's **virtual memory paging** mechanism, split the KV cache into fixed-size **blocks** that need not be physically contiguous.
 
-- **Block size**：通常 16 或 32 tokens
-- **Block table**：每个请求维护一张逻辑块号 → 物理块号的映射表
-- **Physical block pool**：GPU 显存中预先分配好的物理块池
+- **Block size**: typically 16 or 32 tokens.
+- **Block table**: each request maintains a logical-block-number → physical-block-number mapping.
+- **Physical block pool**: a pool of physical blocks pre-allocated in GPU memory.
 
 ```
 Logical KV:  [Block 0] [Block 1] [Block 2] [Block 3]
                 ↓         ↓         ↓         ↓
-Physical:    [Slot 7]  [Slot 2]  [Slot 9]  [Slot 1]   ← 非连续
+Physical:    [Slot 7]  [Slot 2]  [Slot 9]  [Slot 1]   ← non-contiguous
 ```
 
-### 优势
+### Advantages
 
-| 问题 | 传统方案 | PagedAttention |
+| Problem | Traditional approach | PagedAttention |
 |---|---|---|
-| 内部碎片 | 预分配最大长度，浪费严重 | 按需分配块，最多浪费 1 块 |
-| 外部碎片 | 连续分配，碎片率约 20-30% | 块可任意复用，碎片接近 0 |
-| Prompt 共享 | 每个请求独立存储 | 相同 prompt 的块 Copy-on-Write 共享 |
+| Internal fragmentation | Pre-allocate max length, heavy waste | Allocate blocks on demand, waste ≤ 1 block |
+| External fragmentation | Contiguous allocation, ~20-30% fragmentation | Blocks reused freely, fragmentation ≈ 0 |
+| Prompt sharing | Each request stores independently | Same-prompt blocks shared via Copy-on-Write |
 
-### Copy-on-Write (写时复制)
+### Copy-on-Write
 
-多个请求共享同一 prompt 的物理块（引用计数 > 1）。当某个请求需要写入（生成新 token）时，触发 CoW：复制该块到新物理块，再写入。
+Multiple requests share the same prompt's physical blocks. When a request needs to write (generate a new token), CoW triggers: copy the block to a new physical block, then write.
 
-应用场景：
-- **Parallel sampling**：同一 prompt 生成多个输出（beam search、best-of-N）
-- **Shared system prompt**：多请求共享相同系统提示
+Use cases:
+- **Parallel sampling**: multiple outputs from one prompt (beam search, best-of-N).
+- **Shared system prompt**: multiple requests share the same system prompt.
 
 ### PagedAttention Kernel
 
-标准 attention kernel 假设 KV 连续存储；PagedAttention 需要自定义 CUDA kernel，通过 block table 间接寻址。vLLM 实现了两个版本：
-- `paged_attention_v1`：直接实现
-- `paged_attention_v2`：针对长序列的分治版本
+A standard attention kernel assumes contiguous KV storage; PagedAttention needs a custom CUDA kernel that addresses memory indirectly through the block table. vLLM implemented two versions:
+- `paged_attention_v1`: direct implementation.
+- `paged_attention_v2`: a divide-and-conquer version for long sequences.
 
 ---
 
 ## 5. Chunked Prefill
 
-### 问题
+### Problem
 
-Continuous batching 中，一个长 prefill 请求（如 8K tokens）会独占一个 step，导致同批 decode 请求的 inter-token latency (ITL) 出现尖峰。
+In continuous batching, one long prefill request (e.g. 8K tokens) monopolizes a step, causing inter-token latency (ITL) spikes for the decode requests in the same batch.
 
-### 解决方案
+### Solution
 
-将 prefill 切成固定大小的 chunk（如 512 tokens），每个 step 只处理一个 chunk，和 decode token 一起打包执行：
+Split prefill into fixed-size chunks (e.g. 512 tokens); each step processes only one chunk, packed together with decode tokens:
 
 ```
 Step 1: [prefill chunk 0~511, decode A, decode B, decode C]
@@ -150,135 +150,135 @@ Step 2: [prefill chunk 512~1023, decode A, decode B, decode C]
 ...
 ```
 
-效果：
-- decode 请求不再被长 prefill 阻塞，ITL 更稳定
-- 计算密度保持高（chunk + decode token 合并成一个 forward pass）
-- 代价：prefill 的 TTFT (Time to First Token) 变长（被分多步完成）
+Effect:
+- Decode requests are no longer blocked by a long prefill; ITL is more stable.
+- Compute density stays high (chunk + decode tokens merged into one forward pass).
+- Cost: the prefill's TTFT (Time to First Token) increases.
 
 ---
 
-## 6. 量化 (Quantization)
+## 6. Quantization
 
-### 为什么量化
+### Why Quantize
 
-- 减小模型权重内存占用（BF16 → INT8 省 50%，INT4 省 75%）
-- 减小 KV cache 内存（FP8 KV cache）
-- 提高计算吞吐（INT8/FP8 Tensor Core 峰值算力更高）
+- Reduce model weight memory (BF16 → INT8 saves 50%, INT4 saves 75%).
+- Reduce KV cache memory (FP8 KV cache).
+- Increase compute throughput (INT8/FP8 Tensor Core peak throughput is higher).
 
-### 常见方案
+### Common Schemes
 
-| 方案 | 精度 | 对象 | 特点 |
+| Scheme | Precision | Target | Notes |
 |---|---|---|---|
-| AWQ | INT4 | 权重 | 保护显著权重，精度损失小 |
-| GPTQ | INT4/INT8 | 权重 | 基于 Hessian 的逐层量化 |
-| SmoothQuant | INT8 | 权重+激活 | 将激活的难量化性转移到权重 |
-| FP8 (W8A8) | FP8 | 权重+激活 | H100 原生支持，精度接近 BF16 |
-| FP8 KV Cache | FP8 | KV cache | 减少 KV 显存，精度损失小 |
+| AWQ | INT4 | weights | Protects salient weights, small accuracy loss |
+| GPTQ | INT4/INT8 | weights | Hessian-based layer-wise quantization |
+| SmoothQuant | INT8 | weights + activations | Shifts activation quantization difficulty onto weights |
+| FP8 (W8A8) | FP8 | weights + activations | Native H100 support, accuracy close to BF16 |
+| FP8 KV Cache | FP8 | KV cache | Reduces KV memory, small accuracy loss |
 
-### KV Cache 量化
+### KV Cache Quantization
 
-KV cache 量化为 FP8 可将 KV 显存减半，支持更长上下文或更大批次。vLLM 支持 per-tensor 和 per-channel 两种 FP8 KV cache 量化方式。
-
----
-
-## 7. 投机推理 (Speculative Decoding)
-
-### 原理
-
-LLM decode 是**内存带宽瓶颈**（每步只生成 1 token，GPU 算力大量闲置）。投机推理用一个小**草稿模型 (draft model)** 快速生成多个候选 token，再用大**目标模型 (target model)** 一次验证：
-
-```
-Draft model: token₁, token₂, token₃, token₄, token₅  （5步）
-Target model: 一次 forward pass 验证全部 5 个 token
-接受 token₁~token₄，拒绝 token₅，重采样 token₅'
-净效果: 1 次 target forward ≈ 产出 4 个 token
-```
-
-### 接受率与加速比
-
-设草稿 token 的平均接受率为 α，每次投机生成 k 个草稿 token：
-
-```
-期望每步产出 token 数 ≈ (1 - αᵏ⁺¹) / (1 - α)
-```
-
-加速比取决于：
-- α（草稿模型与目标模型的分布匹配程度）
-- draft model 速度（越快越好）
-- 目标模型 batch 大小（大 batch 时投机收益下降）
-
-### Draft Model 来源
-
-- **独立小模型**：如用 Llama 3.2 1B 给 Llama 3.1 70B 打草稿
-- **EAGLE / Medusa**：在目标模型内部加轻量草稿头，共享 KV cache，draft 接近零开销
-- **Ngram lookup**：从已生成文本中查找重复 ngram 作为草稿（适合长文档生成）
+Quantizing the KV cache to FP8 halves KV memory, enabling longer context or larger batches. vLLM supports both per-tensor and per-channel FP8 KV cache quantization.
 
 ---
 
-## 8. 张量并行与流水线并行 (Tensor Parallelism & Pipeline Parallelism)
+## 7. Speculative Decoding
 
-### 张量并行 (Tensor Parallelism, TP)
+### Principle
 
-将单层的权重矩阵按列/行切分到多张 GPU，每张 GPU 计算部分结果，通过 AllReduce 合并。
+LLM decode is **memory-bandwidth-bound** (only 1 token generated per step, much GPU compute idle). Speculative decoding uses a small **draft model** to quickly generate several candidate tokens, then a large **target model** verifies them in one pass:
 
-- TP=4：4 张 GPU 各持有 1/4 的 attention heads 和 FFN 权重
-- 每层结束做一次 AllReduce（2 次：attention 后 + FFN 后）
-- 延迟随 TP 增大（通信开销），通常 TP ≤ 单节点 GPU 数（避免跨节点 AllReduce）
+```
+Draft model:  token₁, token₂, token₃, token₄, token₅
+Target model: one forward pass verifies all 5 tokens
+Accept token₁~token₄, reject token₅, resample token₅'
+Net effect: 1 target forward ≈ 4 tokens produced
+```
 
-### 流水线并行 (Pipeline Parallelism, PP)
+### Acceptance Rate and Speedup
 
-将模型层按深度切分，不同 GPU 处理不同层。
+Let the average acceptance rate of draft tokens be α, with k draft tokens generated per speculation:
 
-- PP=4：GPU0 处理 layer 0-7，GPU1 处理 layer 8-15，…
-- 通信量小（只传激活值），适合跨节点
-- 缺点：流水线气泡（pipeline bubble），GPU 存在等待时间
-- 配合 micro-batching 减少气泡
+```
+expected tokens per step ≈ (1 - αᵏ⁺¹) / (1 - α)
+```
 
-### 实践搭配
+Speedup depends on:
+- α
+- draft model speed
+- target model batch size (speculation gains fall off at large batch)
 
-大模型典型配置：TP × PP 覆盖全部 GPU：
+### Draft Model Sources
 
-| 模型 | 典型配置 |
+- **Independent small model**: e.g. Llama 3.2 1B drafting for Llama 3.1 70B.
+- **EAGLE / Medusa**: add lightweight draft heads inside the target model, sharing the KV cache — near-zero draft overhead.
+- **Ngram lookup**: find repeated ngrams in already-generated text to use as drafts.
+
+---
+
+## 8. Tensor Parallelism & Pipeline Parallelism
+
+### Tensor Parallelism (TP)
+
+Split a single layer's weight matrices by column/row across multiple GPUs; each GPU computes a partial result, merged via AllReduce.
+
+- TP=4: 4 GPUs each hold 1/4 of the attention heads and FFN weights.
+- One AllReduce per layer (actually 2: after attention + after FFN).
+- Latency grows with TP; usually TP ≤ GPUs per node (to avoid cross-node AllReduce).
+
+### Pipeline Parallelism (PP)
+
+Split the model by depth; different GPUs handle different layers.
+
+- PP=4: GPU0 handles layers 0-7, GPU1 handles layers 8-15, …
+- Low communication volume, suitable across nodes.
+- Downside: pipeline bubbles — GPUs incur waiting time.
+- Combine with micro-batching to reduce bubbles.
+
+### Practical Combinations
+
+Typical large-model configs cover all GPUs with TP × PP:
+
+| Model | Typical config |
 |---|---|
-| 70B，8×A100 | TP=8, PP=1 |
-| 405B，32×H100 | TP=8, PP=4 |
+| 70B, 8×A100 | TP=8, PP=1 |
+| 405B, 32×H100 | TP=8, PP=4 |
 
 ---
 
-## 9. 前缀缓存 (Prefix Caching)
+## 9. Prefix Caching
 
-对于有相同前缀（如 system prompt）的多个请求，vLLM 可以复用已计算的 KV cache 块：
+For multiple requests sharing the same prefix (e.g. a system prompt), vLLM can reuse the already-computed KV cache blocks:
 
-- 对每个 block 的 token 序列计算哈希值作为 cache key
-- 新请求到来时，先查找 block hash，命中则直接复用，跳过 prefill
-- LRU 淘汰策略管理 cache
+- Compute a hash of each block's token sequence as the cache key.
+- When a new request arrives, look up block hashes; on a hit, reuse directly and skip prefill.
+- An LRU eviction policy manages the cache.
 
-效果：在 system prompt 占总长度比例大时（如 RAG、long system prompt），可大幅降低 TTFT 和计算量。
+Effect: when the system prompt is a large fraction of total length (e.g. RAG, long system prompts), it substantially lowers TTFT and compute.
 
 ---
 
-## 10. 关键指标 (Key Metrics)
+## 10. Key Metrics
 
-| 指标 | 全称 | 含义 |
+| Metric | Full name | Meaning |
 |---|---|---|
-| TTFT | Time to First Token | 从请求到收到第一个输出 token 的时间，受 prefill 影响 |
-| ITL / TPOT | Inter-Token Latency / Time Per Output Token | decode 阶段每生成一个 token 的时间 |
-| Throughput | — | 系统每秒总输出 token 数 |
-| Goodput | — | 满足 SLA 约束的有效吞吐量 |
+| TTFT | Time to First Token | Time from request to first output token; affected by prefill |
+| ITL / TPOT | Inter-Token Latency / Time Per Output Token | Time to generate each token during decode |
+| Throughput | — | Total output tokens per second across the system |
+| Goodput | — | Effective throughput that meets SLA constraints |
 
-TTFT 和 ITL 之间存在权衡：增大 batch size 提高吞吐但增加 ITL；Chunked Prefill 缓解 TTFT 对 ITL 的影响。
+There is a tradeoff between TTFT and ITL: larger batch size raises throughput but increases ITL; Chunked Prefill mitigates the impact of TTFT on ITL.
 
 ---
 
-## 总结
+## Summary
 
-vLLM 的核心设计理念是**把 GPU 内存当操作系统管内存一样管**：
+vLLM's core design philosophy is to **manage GPU memory the way an operating system manages memory**:
 
-1. **Continuous batching** — 消除静态批处理的等待浪费
-2. **PagedAttention** — 消除 KV cache 的内存碎片，实现共享
-3. **Chunked Prefill** — 平衡 TTFT 和 ITL
-4. **Prefix caching** — 复用公共前缀，降低重复计算
-5. **Speculative decoding** — 利用闲置算力加速 memory-bound decode
-6. **Quantization** — 降低内存和带宽压力
+1. **Continuous batching** — eliminates the waiting waste of static batching
+2. **PagedAttention** — eliminates KV cache fragmentation and enables sharing
+3. **Chunked Prefill** — balances TTFT and ITL
+4. **Prefix caching** — reuses common prefixes, cutting redundant compute
+5. **Speculative decoding** — uses idle compute to accelerate memory-bound decode
+6. **Quantization** — reduces memory and bandwidth pressure
 
-这些技术叠加使 vLLM 相比朴素实现吞吐量提升 10-30×。
+Stacked together, these techniques give vLLM a 10-30× throughput improvement over a naive implementation.

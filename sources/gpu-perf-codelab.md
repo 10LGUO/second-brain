@@ -9,12 +9,12 @@ sources: [11. GPU performance optimization codelab.pdf]
 
 # GPU Performance Optimization Codelab
 
-**第十一课：基于多模型训练场景的GPU性能优化实践**
+**Lesson 11: GPU Performance Optimization Practice for Multi-Model Training Scenarios**
 Lesson 11: GPU Performance Optimization Practice Based on Multi-Model Training Scenarios
 
 ---
 
-## 1. Overview of Training Environment (概览训练环境)
+## 1. Overview of Training Environment
 
 Environment setup includes inspection of GPU hardware, CUDA version, and driver state. Key commands:
 
@@ -26,7 +26,7 @@ nvidia-smi topo -m  # GPU topology / NVLink connections
 
 ---
 
-## 2. Common Tools (常见基元/工具)
+## 2. Common Tools
 
 ### torch.profiler — Basic Profiling Steps
 
@@ -72,7 +72,7 @@ Key things to look for:
 
 ---
 
-## 3. nsight Tools (nsight相关工具)
+## 3. nsight Tools
 
 ### Nsight Systems (`nsys`)
 
@@ -125,7 +125,7 @@ Ranges appear as colored bands in Nsight Systems timeline, making it easy to ide
 
 ---
 
-## 4. Multi-Model Training Optimization (多模型训练优化)
+## 4. Multi-Model Training Optimization
 
 ### Identifying Bottlenecks
 
@@ -167,7 +167,7 @@ The profiling workflow for multi-model scenarios:
 
 ---
 
-## 6. Roofline Model (屋顶线模型)
+## 6. Roofline Model
 
 The roofline model determines whether a kernel is compute-bound or memory-bound:
 

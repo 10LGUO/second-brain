@@ -10,7 +10,7 @@ sources: [1-overview.md]
 
 # HBM (High Bandwidth Memory)
 
-HBM (High Bandwidth Memory) is the high-speed, high-bandwidth off-chip memory standard used in AI compute chips (GPUs and AI accelerators). It is the primary memory backing for model parameters, activations, gradients, and KV cache during large model training and inference. In common usage, **VRAM (显存)** refers to HBM capacity.
+HBM (High Bandwidth Memory) is the high-speed, high-bandwidth off-chip memory standard used in AI compute chips (GPUs and AI accelerators). It is the primary memory backing for model parameters, activations, gradients, and KV cache during large model training and inference. In common usage, **VRAM** refers to HBM capacity.
 
 ## Properties
 
@@ -23,8 +23,8 @@ HBM (High Bandwidth Memory) is the high-speed, high-bandwidth off-chip memory st
 ## Memory Access Mechanics
 
 - **DMA (Direct Memory Access):** Hardware engine that transfers data from HBM to on-chip cache and registers. Controlled by the chip vendor's driver software.
-- **Memory access bandwidth (访存带宽):** The actual data transfer rate from HBM into the chip interior. Determined by both HBM-side and chip-side (DMA engine) capability.
-- **Memory access utilization (访存利用率)** = actual bandwidth / rated HBM bandwidth. Always < 1.0 due to protocol overhead (analogous to CRC overhead in network communications).
+- **Memory access bandwidth:** The actual data transfer rate from HBM into the chip interior. Determined by both HBM-side and chip-side (DMA engine) capability.
+- **Memory access utilization** = actual bandwidth / rated HBM bandwidth. Always < 1.0 due to protocol overhead (analogous to CRC overhead in network communications).
   - Poor chips: low utilization due to bad DMA hardware design or inadequate software.
   - Good chips/drivers: utilization approaches rated bandwidth closely.
 

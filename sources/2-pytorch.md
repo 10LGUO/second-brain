@@ -1,5 +1,5 @@
 ```yaml
-title: "2.pytorch 详解 (PyTorch Detailed Explanation)"
+title: "2. PyTorch (Detailed Explanation)"
 type: source
 tags: [pytorch, deep-learning, framework, tutorial, chinese]
 created: 2026-04-05
@@ -7,11 +7,11 @@ updated: 2026-04-05
 sources: []
 ```text
 
-# 2.pytorch 详解
+# PyTorch (Detailed Explanation)
 
 ## Bibliographic Information
 
-- **Original filename:** `2.pytorch 详解.pdf`
+- **Original filename:** `2.pytorch.pdf`
 - **Language:** Chinese (Simplified)
 - **Type:** Technical tutorial / detailed explanation document
 - **Topic:** PyTorch deep learning framework
@@ -25,7 +25,7 @@ sources: []
 
 ## Expected Coverage (based on document title)
 
-The title "pytorch 详解" (PyTorch Detailed Explanation) strongly suggests this document
+The title (PyTorch Detailed Explanation) strongly suggests this document
 covers the PyTorch deep learning framework in depth. Based on the document series numbering
 ("2."), it is likely part of a multi-document curriculum or course sequence. Topics
 typically covered in such a document would include:

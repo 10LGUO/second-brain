@@ -135,4 +135,12 @@ Tag `[Code Change]` for changes to wiki infrastructure (ingest.py, schema.md, .m
 
 ## [2026-05-27] update | concepts/1-overview-precision-convergence.md — FP32 accumulator requirement for reduction kernels (LayerNorm, RMSNorm, Softmax, matmul); added FP16 vs BF16 practical choice section
 
-## [2026-05-26] ingest | Lecture 7 — Accuracy Debugging (精度调试) — precision types (FP32/BF16/FP16/FP8), numerical instability & batch-invariant kernels (SGLang Sep 2025), GPU & domestic-chip debugging methodology, common precision bugs
+## [2026-07-04] ingest | KV Cache Quantization Project Walkthrough — dynamic vs static INT8 KV cache quantization, per-channel scale rationale, scale non-associativity fix, vLLM framework changes (reshape_and_cache, chunk prefill, pageattention), performance source analysis; created concepts/kv-cache-int8-quantization.md, linked from concepts/1-overview-kv-cache.md
+
+## [2026-05-26] ingest | Lecture 7 — Accuracy Debugging — precision types (FP32/BF16/FP16/FP8), numerical instability & batch-invariant kernels (SGLang Sep 2025), GPU & domestic-chip debugging methodology, common precision bugs
+
+## [2026-07-19] create | concepts/quantization-fundamentals.md — symmetric/asymmetric int8, granularity & outlier-ratio method, dynamic vs static, scale non-associativity in quantized matmul, fake quantization, calibration (max vs percentile), int8 hardware wins, common pitfalls; grounded in paged_attention_ref.py and analyze_kv_granularity.py
+
+## [2026-07-22] create | concepts/pytorch-dispatcher-execution.md — PyTorch dispatcher & eager execution: dispatch keys (device-driven, dtype resolved inside kernel via AT_DISPATCH), custom/fused op registration (TORCH_LIBRARY def/impl, Meta/Autograd keys, vLLM unified_attention_with_output), async launch & sync points (value reads sync, shape/dtype metadata don't), tensor-core accumulation width (bf16→fp32, int8→int32), CUDA graph capture constraints (why a Python-loop paged-attention reference needs enforce_eager); grounded in the qwen INT8 project pytorch_paged_ref.py; back-linked from gpu-execution-model.md
+
+## [2026-07-23] lint | Removed all Chinese wiki-wide (18 files): bilingual glosses "term (中文)" reduced to English, Chinese section markers (一/二/三…) and reversed glosses cleaned, SJTU bylines anglicized, sources/3-4-vllm.md (full Chinese lecture note) translated to English. Verified zero CJK across all .md. Broken-wikilink scan: 61 unresolved targets, all pre-existing aspirational forward-links from prior ingests (none introduced this session); left as-is.

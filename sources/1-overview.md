@@ -9,7 +9,7 @@ sources: []
 
 # Lecture 1: General Overview
 
-**Original title:** 1.总体介绍  
+**Original title:** 1. Overview  
 **Last modified (source):** December 4, 2025  
 **Knowledge base:** Inference-related knowledge base  
 

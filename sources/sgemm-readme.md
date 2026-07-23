@@ -17,8 +17,8 @@ Dev environment: NVIDIA GeForce GTX 1050, 5 SMs, Compute Capability 6.1, 48KB sh
 
 ## Key Terms
 
-- **Memory access volume** (访存量): amount of data read/written from global memory per kernel
-- **Compute-to-memory ratio** (计算访存比): ratio of compute operations to memory accesses per iteration — higher means better latency hiding
+- **Memory access volume**: amount of data read/written from global memory per kernel
+- **Compute-to-memory ratio**: ratio of compute operations to memory accesses per iteration — higher means better latency hiding
 
 ---
 

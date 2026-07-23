@@ -1,5 +1,5 @@
 ```yaml
-title: Numerical Instability (数值不稳定性)
+title: Numerical Instability
 type: concept
 tags: [precision, floating-point, reduction, non-determinism, training, inference]
 created: 2026-05-26
@@ -7,11 +7,11 @@ updated: 2026-05-26
 sources: [7-accuracy-debugging.md]
 ```
 
-# Numerical Instability (数值不稳定性)
+# Numerical Instability
 
 Numerical instability arises because floating-point arithmetic is **non-associative**: `(a + b) + c ≠ a + (b + c)` in general. Computers represent real numbers with finite bits (FP32, FP16, BF16), introducing inherent rounding errors. The order of additions therefore changes results.
 
-## Root Cause: Big-Eats-Small (大数吃小数)
+## Root Cause: Big-Eats-Small
 
 When two numbers of vastly different magnitudes are added, the smaller number may be rounded to zero due to precision limits. The result depends on addition order. A single such error is tiny, but deep learning is filled with **reduction operations** that aggregate millions of numbers — tiny errors compound exponentially through layers.
 

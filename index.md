@@ -48,6 +48,8 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [Large Model Infra](concepts/1-overview-large-model-infra.md) — Model parallelism, memory optimization, FSDP, ZeRO
 - [LLM Infra Skill Stack](concepts/1-overview-llm-infra-skill-stack.md) — Skills required for LLM infrastructure engineering
 - [KV Cache](concepts/1-overview-kv-cache.md) — Key-value cache for autoregressive inference
+- [KV Cache INT8 Quantization](concepts/kv-cache-int8-quantization.md) — Dynamic vs static INT8 KV cache quant, per-channel scale, scale non-associativity gotcha, pageattention kernel speedup
+- [Quantization Fundamentals](concepts/quantization-fundamentals.md) — Symmetric/asymmetric int8 mapping, granularity & outlier-ratio method, dynamic vs static, quantized matmul scale math, fake quantization, calibration, hardware wins, pitfalls
 - [MFU (Model FLOPs Utilization)](concepts/1-overview-mfu-model-flops-utilization.md) — Training efficiency metric
 - [Memory Bandwidth Utilization](concepts/1-overview-memory-bandwidth-utilization.md) — Inference efficiency metric
 - [Parallelism Strategies](concepts/parallelism-strategies.md) — DP, TP, PP, EP comparison: what is split, communication pattern, memory savings, how they combine
@@ -78,6 +80,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [PyTorch Loss Function](concepts/pytorch-loss-function.md) — Cross-entropy, MSE, custom losses
 - [PyTorch Training Loop](concepts/pytorch-training-loop.md) — Forward, backward, optimizer step pattern
 - [Computational Graph](concepts/2-pytorch-computational-graph.md) — Dynamic vs static graph operator behavior, operator fusion, torch.compile, TPU/XLA static graph model
+- [PyTorch Dispatcher and Eager Execution](concepts/pytorch-dispatcher-execution.md) — Dispatch keys (device-driven), custom/fused op registration (TORCH_LIBRARY), async launch & sync points (value vs metadata), tensor-core accumulation width, CUDA graph capture constraints
 - [PyTorch Framework](entities/pytorch-framework.md) — PyTorch deep learning framework overview
 
 ---
@@ -117,6 +120,7 @@ Content-oriented catalog of everything in this wiki. Updated on every ingest.
 - [GPU Performance Optimization Codelab](sources/gpu-perf-codelab.md) — Profiling workflow: torch.profiler, nsys, ncu, NVTX markers, roofline model, multi-model training bottlenecks
 - [BAGEL](sources/bagel.md) — Bytedance 14B multimodal model (7B active MoT); architecture, VRAM requirements, inference pipeline, optimization targets
 - [Lecture 7 — Accuracy Debugging](sources/7-accuracy-debugging.md) — Precision types (FP32/BF16/FP16/FP8), numerical instability & batch-invariant kernels, GPU & domestic-chip debugging methodology, common precision bugs
+- [KV Cache Quantization Project Walkthrough](sources/kv_cache_quantization_example.md) — Practical INT8 KV cache quantization: dynamic vs static, per-channel scale, vLLM framework changes, pageattention kernel as performance source
 
 ---
 

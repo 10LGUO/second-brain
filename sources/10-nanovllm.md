@@ -1,5 +1,5 @@
 ```yaml
-title: "Lecture 10 — Building an LLM Inference Engine from Scratch (从零搭建推理引擎)"
+title: "Lecture 10 — Building an LLM Inference Engine from Scratch"
 type: source
 tags: [inference, llm, vllm, nanovllm, kv-cache, model-loading, safetensors, tokenizer, huggingface, continuous-batching, forward-pass, serving]
 created: 2026-06-03
@@ -7,15 +7,15 @@ updated: 2026-06-03
 sources: [10-Nanovllm.pdf]
 ```
 
-# Lecture 10 — Building an LLM Inference Engine from Scratch (从零搭建推理引擎)
+# Lecture 10 — Building an LLM Inference Engine from Scratch
 
-Source: 上交大 AI infra 团队 (SJTU AI Infra Team), lecture series.
+Source: SJTU AI Infra Team, lecture series.
 
 NanoVLLM is a minimal LLM inference engine built from scratch to teach the internals of production engines like vLLM. The goal is to understand each component by implementing it, rather than treating the engine as a black box.
 
 ---
 
-## 前言 (Introduction)
+## Introduction
 
 Production LLM inference engines (vLLM, SGLang, TGI) are complex systems. NanoVLLM strips them down to the essential pieces:
 
@@ -29,7 +29,7 @@ Understanding NanoVLLM provides the mental model needed to read and contribute t
 
 ---
 
-## 1. 模型加载 (Model Loading)
+## 1. Model Loading
 
 ### 1.1 Weight Files and Safetensors
 
@@ -81,7 +81,7 @@ HF_NAME_MAP = {
 
 ---
 
-## 2. HuggingFace Model Architecture (Hugging Face模型结构)
+## 2. HuggingFace Model Architecture
 
 ### 2.1 Reading config.json
 
@@ -162,7 +162,7 @@ GQA reduces the KV cache size by `num_q_per_kv`× — a major memory saving at l
 
 ---
 
-## 3. Tokenizer (tokenizer初始化)
+## 3. Tokenizer
 
 Use HuggingFace tokenizers directly:
 
@@ -185,7 +185,7 @@ Key tokenizer concepts:
 
 ---
 
-## 4. Forward Pass (forward计算)
+## 4. Forward Pass
 
 ### 4.1 Prefill vs. Decode
 
@@ -269,7 +269,7 @@ Sampling strategies (instead of `argmax`):
 
 ---
 
-## 5. Launching the Inference Service (launch推理服务)
+## 5. Launching the Inference Service
 
 A minimal HTTP serving loop wrapping the generate function:
 
@@ -298,7 +298,7 @@ See [[1-overview-llm-inference-infra]], [[1-overview-kv-cache]].
 
 ---
 
-## 总结 (Summary)
+## Summary
 
 NanoVLLM component map:
 

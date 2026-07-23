@@ -9,7 +9,7 @@ sources: [1-overview.md]
 
 # Memory Bandwidth Utilization
 
-**Memory bandwidth utilization** (访存利用率) measures how efficiently a chip uses its available off-chip memory (HBM) bandwidth. It is a critical performance metric in AI inference and training, complementary to compute utilization ([[1-overview-mfu-model-flops-utilization]]).
+**Memory bandwidth utilization** measures how efficiently a chip uses its available off-chip memory (HBM) bandwidth. It is a critical performance metric in AI inference and training, complementary to compute utilization ([[1-overview-mfu-model-flops-utilization]]).
 
 ## Key Properties
 

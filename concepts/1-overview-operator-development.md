@@ -9,7 +9,7 @@ sources: [1-overview.md]
 
 # Operator Development
 
-An **operator** (算子) is the smallest execution unit on a compute chip. Operators implement the parallel compute primitives of a chip and are the fundamental building blocks through which higher-level frameworks (PyTorch, TensorFlow, Megatron, etc.) express computation. Understanding and developing operators is essential for AI infra engineers performing performance optimization and operator fusion.
+An **operator** is the smallest execution unit on a compute chip. Operators implement the parallel compute primitives of a chip and are the fundamental building blocks through which higher-level frameworks (PyTorch, TensorFlow, Megatron, etc.) express computation. Understanding and developing operators is essential for AI infra engineers performing performance optimization and operator fusion.
 
 ## Definition
 

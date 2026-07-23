@@ -9,7 +9,7 @@ sources: []
 
 # Speedup Ratio
 
-The **speedup ratio** (加速比) measures how much faster a parallelized or optimized system runs compared to a baseline:
+The **speedup ratio** measures how much faster a parallelized or optimized system runs compared to a baseline:
 
 ```
 S = T₁ / Tₙ
@@ -42,7 +42,7 @@ Even with infinite workers, the maximum speedup is `1 / f_serial`. A 5% serial f
 | Checkpoint I/O | Periodic blocking writes to distributed storage |
 | Stragglers | One slow device holds back the entire synchronous step |
 
-The aggregate effect is captured by **MFU (Model FLOP Utilization, 模型浮点利用率)**: actual useful FLOP/s divided by peak hardware FLOP/s. A high MFU (40–60% on A100s) indicates the parallelization overhead is well-managed.
+The aggregate effect is captured by **MFU (Model FLOP Utilization)**: actual useful FLOP/s divided by peak hardware FLOP/s. A high MFU (40–60% on A100s) indicates the parallelization overhead is well-managed.
 
 ## Relationship to Compute-Communication Overlap
 

@@ -1,5 +1,5 @@
 ```yaml
-title: "Lecture 7 — Accuracy Debugging (精度调试)"
+title: "Lecture 7 — Accuracy Debugging"
 type: source
 tags: [precision, debugging, training, inference, gpu, domestic-chips, numerical-instability, quantization]
 created: 2026-05-26
@@ -7,13 +7,13 @@ updated: 2026-05-26
 sources: [7-Accuracy Debugging.pdf]
 ```
 
-# Lecture 7 — Accuracy Debugging (精度调试)
+# Lecture 7 — Accuracy Debugging
 
-Source: 上交大 AI infra 团队 (SJTU AI Infra Team), lecture series. Last modified Dec 4, 2025.
+Source: SJTU AI Infra Team, lecture series. Last modified Dec 4, 2025.
 
 ---
 
-## 一、Precision Fundamentals (精度相关介绍)
+## Precision Fundamentals
 
 ### 1. Numeric Precision Types
 
@@ -45,7 +45,7 @@ Source: 上交大 AI infra 团队 (SJTU AI Infra Team), lecture series. Last mod
 - **Training:** AI infra engineers optimize (operator fusion, low-precision quantization, comm-compute overlap, async optimizations). The optimized model must align precision with the original PyTorch FP32 baseline.
 - **Inference:** New features (paged attention, quantization, speculative decoding) must not degrade precision — though some applications tolerate precision loss for throughput (e.g., creative writing), others do not (e.g., math/physics problems).
 
-#### Domestic Chip Precision (国产芯片精度)
+#### Domestic Chip Precision
 
 Domestic chips have far smaller teams (100–1000 people) compared to NVIDIA. They cannot validate every operator across all use cases. Precision issues often arise from hardware and software bugs. Precision is the **reflection of the correctness of the entire hardware-software computing system**.
 
@@ -53,7 +53,7 @@ Goals:
 - Training: align loss/grad-norm curves with GPU
 - Inference: align outputs with GPU baseline
 
-### 4. Numerical Instability (数值不稳定性)
+### 4. Numerical Instability
 
 Floating-point arithmetic is inherently non-associative: `(a + b) + c ≠ a + (b + c)` in general. The root cause is the **big-eats-small** phenomenon — when adding numbers of vastly different magnitude, the smaller number may be rounded away entirely.
 
@@ -67,7 +67,7 @@ Key insight: **don't eliminate floating-point imprecision (impossible in hardwar
 
 ---
 
-## 二、GPU Precision Debugging
+## GPU Precision Debugging
 
 ### 1. Scenario
 
@@ -110,7 +110,7 @@ Compare forward activations, logits, KV cache across many steps. If the final to
 
 ---
 
-## 三、Domestic Chip Precision Debugging
+## Domestic Chip Precision Debugging
 
 ### 1. Scenarios
 
@@ -131,11 +131,11 @@ Baseline and randomness-fixing same as GPU. Numerical comparison same as GPU.
 
 ---
 
-## 四、Common Precision Problems (常见精度问题)
+## Common Precision Problems
 
 1. **Operator bugs:** Incorrect computation, or missing synchronization (block should sync but doesn't).
 
-2. **Memory trampling (内存踩踏):** Operator kernel writes out of bounds into HBM, corrupting adjacent tensors. Unit tests often miss this; it only manifests during full model runs.
+2. **Memory trampling:** Operator kernel writes out of bounds into HBM, corrupting adjacent tensors. Unit tests often miss this; it only manifests during full model runs.
 
 3. **Accumulation precision / overflow:** Using low-precision accumulators where FP32 is needed (e.g., LayerNorm accumulation in low precision overflows or loses precision).
 

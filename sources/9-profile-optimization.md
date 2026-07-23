@@ -1,5 +1,5 @@
 ```yaml
-title: "Lecture 9 — Performance Optimization (性能优化讲解)"
+title: "Lecture 9 — Performance Optimization"
 type: source
 tags: [gpu, profiling, performance, operator-fusion, quantization, cuda-graph, torch-compile, streams, pinned-memory, distributed, static-graph, dynamic-graph, optimization]
 created: 2026-05-31
@@ -7,13 +7,13 @@ updated: 2026-05-31
 sources: [9-profile optimization.pdf]
 ```
 
-# Lecture 9 — Performance Optimization (性能优化讲解)
+# Lecture 9 — Performance Optimization
 
-Source: 上交大 AI infra 团队 (SJTU AI Infra Team), lecture series.
+Source: SJTU AI Infra Team, lecture series.
 
 ---
 
-## 1. Performance Optimization Overview (性能优化概述)
+## 1. Performance Optimization Overview
 
 Performance optimization is fundamentally about improving GPU utilization. The goal is to maximize the use of hardware compute and memory bandwidth, eliminate idle time, and reduce unnecessary CPU↔GPU interaction.
 
@@ -55,9 +55,9 @@ See [[9-perf-opt-profiling]] for the full profiling workflow.
 
 ---
 
-### 1.2 Common Performance Optimization Points (常见的性能优化点)
+### 1.2 Common Performance Optimization Points
 
-#### 1.2.1 Operator-Level Optimization (算子角度)
+#### 1.2.1 Operator-Level Optimization
 
 **Operator vectorization:** Profile to find which kernels consume the most time. Check whether the operator is using the hardware's vector units efficiently. Shape mismatches (e.g., sizes that are not multiples of 16 or 128) can dramatically reduce throughput by misaligning memory accesses or wasting warp lanes.
 
@@ -79,7 +79,7 @@ Quantization is the highest-leverage performance optimization available.
 
 See [[1-overview-operator-fusion]], [[1-overview-precision-convergence]].
 
-#### 1.2.2 Host/Device Optimization (host和device优化)
+#### 1.2.2 Host/Device Optimization
 
 **Minimize CPU-GPU synchronization points.** Every `.item()`, `.numpy()`, `torch.cuda.synchronize()`, or scalar loss check forces the CPU to wait for the GPU to finish — stalling the entire pipeline.
 
@@ -99,11 +99,11 @@ The CPU should always be ahead of the GPU in the launch queue, never blocking.
 
 See [[9-perf-opt-host-device]].
 
-#### 1.2.3 Distributed Communication Optimization (分布式通信优化)
+#### 1.2.3 Distributed Communication Optimization
 
 **Buffer aggregation:** Rather than issuing many small AllReduce / AllGather calls, accumulate gradients and communicate larger buffers at once. Fewer calls amortize the per-call latency.
 
-**Compute-communication overlap (通信运算并行):** The key principle — never let the GPU sit idle waiting for a communication to complete.
+**Compute-communication overlap:** The key principle — never let the GPU sit idle waiting for a communication to complete.
 
 - Use non-blocking collectives (`dist.all_reduce(..., async_op=True)`)
 - Bucket gradients: start AllReduce on a bucket as soon as all its gradients are ready, while backward continues computing gradients for earlier layers
@@ -178,7 +178,7 @@ output = static_y  # already updated in place
 
 See [[9-perf-opt-torch-compile-cuda-graph]].
 
-#### 1.2.6 Compute and Storage Buffer Optimization (计算和存储缓冲优化)
+#### 1.2.6 Compute and Storage Buffer Optimization
 
 Pre-allocate output buffers and reuse them across iterations to avoid repeated `malloc` / `cudaMalloc` calls. Use memory pools (`torch.cuda.memory.CUDAPluggableAllocator` or PyTorch's built-in caching allocator).
 
@@ -201,7 +201,7 @@ tensor_gpu = tensor.cuda(non_blocking=True)  # async H→D, no CPU stall
 
 **Caution:** Pinned memory is a limited OS resource; allocating too much degrades system performance. Use selectively for large, frequently-transferred buffers.
 
-#### 1.2.8 Chip-Specific Optimization (根据芯片特性的优化)
+#### 1.2.8 Chip-Specific Optimization
 
 Every hardware has architectural quirks that affect optimal kernel design:
 - NVIDIA Ampere: `cp.async` for direct global→shared memory DMA; TF32 for GEMM
@@ -212,7 +212,7 @@ Profile on the actual target hardware. Roofline analysis (arithmetic intensity v
 
 ---
 
-### 1.3 Summary (总结)
+### 1.3 Summary
 
 Performance optimization priority order (roughly):
 
@@ -227,9 +227,9 @@ Performance optimization priority order (roughly):
 
 ---
 
-## 2. Static Graph Performance Optimization (静态图性能优化)
+## 2. Static Graph Performance Optimization
 
-### 2.1 Optimization Properties of Static Graphs (静态图拥有的优化特性)
+### 2.1 Optimization Properties of Static Graphs
 
 Static graphs (shapes fixed at compile time) unlock optimizations that are impossible in fully dynamic execution:
 
@@ -248,7 +248,7 @@ Alternatively, set `torch._dynamo.config.assume_static_by_default = True`.
 
 With static shapes, `torch.compile` can fully capture the computation graph and apply the full suite of Inductor optimizations.
 
-### 2.2 Other Static Graph Features (其它特性)
+### 2.2 Other Static Graph Features
 
 - `torch.jit.script` / `torch.jit.trace` (older approach): export to TorchScript for deployment without Python overhead
 - `torch.export` (PyTorch 2.x): stricter graph capture for AOT (ahead-of-time) compilation and deployment
@@ -256,7 +256,7 @@ With static shapes, `torch.compile` can fully capture the computation graph and 
 
 ---
 
-## 3. Dynamic Graph Performance Optimization (动态图性能优化)
+## 3. Dynamic Graph Performance Optimization
 
 Dynamic graphs (variable shapes, control flow) are harder to optimize but not hopeless:
 

@@ -1,5 +1,5 @@
 ```yaml
-title: "Lecture 8 — Memory Optimization (存储优化)"
+title: "Lecture 8 — Memory Optimization"
 type: source
 tags: [gpu, memory, training, flash-attention, gradient-checkpointing, offloading, quantization, pruning, profiling, optimization]
 created: 2026-05-30
@@ -7,15 +7,15 @@ updated: 2026-05-30
 sources: [8-memory optimization.pdf]
 ```
 
-# Lecture 8 — Memory Optimization (存储优化)
+# Lecture 8 — Memory Optimization
 
-Source: 上交大 AI infra 团队 (SJTU AI Infra Team), lecture series.
+Source: SJTU AI Infra Team, lecture series.
 
 ---
 
-## 一、GPU Memory Overview (显存行化)
+## GPU Memory Overview
 
-GPU memory (显存) during LLM training is consumed by four main categories:
+GPU memory during LLM training is consumed by four main categories:
 
 | Category | Size (per parameter) | Notes |
 |---|---|---|
@@ -30,9 +30,9 @@ Memory flows between CPU DRAM and GPU HBM (High Bandwidth Memory) over PCIe. Wit
 
 ---
 
-## 二、Memory Optimization Methods (显存优化方法)
+## Memory Optimization Methods
 
-### 2.1 Formally Tracking Memory Usage (形式化追踪存储消耗)
+### 2.1 Formally Tracking Memory Usage
 
 Use PyTorch built-ins to inspect GPU memory state:
 
@@ -70,7 +70,7 @@ FlashAttention-2 (2023) further improves parallelism across sequence positions a
 
 See [[8-memory-opt-flash-attention]] for full derivation.
 
-### 2.3 Gradient Checkpointing (梯度检查点)
+### 2.3 Gradient Checkpointing
 
 Normal backprop retains all forward-pass intermediate activations in memory until the backward pass completes — O(L) memory for a model of L layers.
 
@@ -98,7 +98,7 @@ For activation memory that dominates (large batch, long sequence), checkpointing
 
 See [[8-memory-opt-gradient-checkpointing]] for details.
 
-### 2.4 Memory Distribution Across GPUs (显卡之间存储分布)
+### 2.4 Memory Distribution Across GPUs
 
 **ZeRO (Zero Redundancy Optimizer)** — Microsoft DeepSpeed:
 
@@ -114,7 +114,7 @@ In vanilla DDP (Distributed Data Parallel), every GPU holds a full copy of param
 
 ---
 
-## 三、Profiling Tools (检测优化工具)
+## Profiling Tools
 
 ### PyTorch Memory Snapshot
 
@@ -139,9 +139,9 @@ Visualize at `pytorch.org/memory_viz` — produces a flame-graph-style allocatio
 
 ---
 
-## 四、Memory Optimization Techniques (存储优化工具)
+## Memory Optimization Techniques
 
-### 4.1 Offloading (卸载)
+### 4.1 Offloading
 
 Move tensors that are not immediately needed from GPU HBM to CPU DRAM (or NVMe) and bring them back when required. The cost is CPU↔GPU PCIe bandwidth (~32–64 GB/s) vs. saved GPU memory.
 
@@ -155,7 +155,7 @@ Move tensors that are not immediately needed from GPU HBM to CPU DRAM (or NVMe) 
 - Prefetch them back to GPU just before they are needed in the backward pass.
 - Requires careful pipelining to hide PCIe latency.
 
-### 4.2 Quantization (量化)
+### 4.2 Quantization
 
 Reduce model weight precision at load time to save HBM:
 
@@ -187,7 +187,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 Key trade-off: quantization saves memory at the cost of precision degradation. Lower bit-width → more aggressive quantization error. See [[1-overview-precision-convergence]] for convergence implications.
 
-### 4.3 Pruning (剪枝)
+### 4.3 Pruning
 
 Remove redundant weights to reduce model size and, potentially, memory footprint.
 

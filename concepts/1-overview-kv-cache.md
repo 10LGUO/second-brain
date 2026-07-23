@@ -3,7 +3,7 @@ title: KV Cache
 type: concept
 tags: [llm-infra, inference, attention, memory, optimization]
 created: 2026-04-05
-updated: 2026-04-05
+updated: 2026-07-04
 sources: [1-overview.md]
 ```
 
@@ -29,9 +29,11 @@ KV Cache (Key-Value Cache) is a fundamental optimization technique for LLM infer
 - [[1-overview-llm-inference-infra]]
 - [[1-overview-flash-attention]]
 - [[1-overview-gpu-software-stack]]
+- [[kv-cache-int8-quantization]]
 
 ## Sources
 
 - [[1-overview]]
+- [[kv_cache_quantization_example]]
 
 ---
